@@ -17,7 +17,7 @@ A real-time audience engagement platform focused on Q&A functionality. Similar t
 - Corporate all-hands meetings and town halls
 - Conference presentations and panel discussions
 - Webinar Q&A sessions
-- Classroom lectures and workshops
+- Team showcases
 - Product demos and launches
 - Training sessions
 
@@ -27,10 +27,11 @@ A real-time audience engagement platform focused on Q&A functionality. Similar t
 **What it does**: Hosts can quickly create Q&A sessions for their events
 
 **User Experience**:
-- Host logs in with Google account
+- Host logs in with a Google account
 - Creates a new session with a title and optional description
 - Receives a simple 6-digit session code to share
 - Gets a unique session link for easy sharing
+- Generates and shows the link in a form of a QR code 
 
 **Key Benefits**:
 - No complex setup or configuration
@@ -43,9 +44,13 @@ A real-time audience engagement platform focused on Q&A functionality. Similar t
 **User Experience**:
 - Enter session code on homepage or click shared link
 - See session title and description
-- Submit questions anonymously with simple text box
+- Specify their name or choose to be an anonymous participant
+- Submit questions (under the specified name or anonymously) with a simple text box
 - View all approved questions from other participants
-- Vote on questions they find most interesting
+- See question status: Clearly see which are “Being answered,” “Answered Live,” or “Answered via Docs.”
+- Vote on questions they find most interesting (on-click upvote)
+- Lightweight “Pulse Check”: Emoji 💚/💛/🔴: “Did this answer help?” for at-a-glance sentiment submission to be tracked by the host.
+- Mobile-Optimized Interface: One-tap entry, large buttons, clear navigation.
 
 **Key Benefits**:
 - Zero friction participation
@@ -58,8 +63,9 @@ A real-time audience engagement platform focused on Q&A functionality. Similar t
 **User Experience**:
 - View all submitted questions in real-time
 - See vote counts for each question
-- Approve or dismiss questions before they're visible to audience
-- Mark questions as "answered" to track progress
+- Mark questions as “Being answered,” “Answered Live,” or “Answered via Docs.” to track progress
+- Flag inappropriate or duplicate content
+- “Pin” important questions for easy viewing
 - Questions automatically sorted by vote count
 
 **Key Benefits**:
@@ -72,7 +78,7 @@ A real-time audience engagement platform focused on Q&A functionality. Similar t
 
 **User Experience**:
 - New questions appear immediately for hosts
-- Approved questions show up live for audience
+- Questions flagged by hosts as inappropriate or duplicate get hidden from the participants immediately
 - Vote counts update in real-time
 - Question status changes are instantly visible
 
@@ -92,19 +98,21 @@ A real-time audience engagement platform focused on Q&A functionality. Similar t
    - Clicks "Create Session"
 
 2. **Sharing**
-   - Receives session code (e.g., "AB12CD") and shareable link
+   - Receives session code (e.g., "AB12CD"), a shareable link and a QR code
    - Shares code/link with audience via presentation slide, email, chat, etc.
    - Navigates to host dashboard
 
 3. **During Event**
    - Monitors incoming questions in real-time
-   - Reviews each question and decides to approve or dismiss
+   - Reviews each question and decides whether to dismiss if inappropriate/duplicate
    - Sees vote counts to understand audience priorities
-   - Marks questions as "answered" after addressing them
+   - Marks questions as “Answered Live,” or “Answered via Docs after addressing them
    - Can toggle question acceptance on/off during event
+   - Can see the pulse check sentiment for each question based on the audience feedback (Audience's answers to the “Pulse Check”: Emoji 💚/💛/🔴: “Did this answer help?” prompt for the questions as they get answered).
 
 4. **Wrap-up**
    - Reviews all questions and answers
+   - Can export questions, answers, votes and the pulse check as a CSV
    - Session automatically expires after 24 hours
 
 ### Audience Flow: Joining and Participating
@@ -113,11 +121,13 @@ A real-time audience engagement platform focused on Q&A functionality. Similar t
    - Enters session code on homepage or clicks shared link
    - Immediately sees session title and any description
    - No account creation or login required
+   - Chooses to submit their name or participate anonymosly
 
 2. **Asking Questions**
-   - Types question in text box and clicks "Submit"
+   - Types question in text box and chooses whether to submit under their name or anonymously
+   - clicks "Submit"
    - Question goes to host for approval
-   - Once approved, question appears in main feed for all participants
+   - Question appears in main feed for all participants to see and upvote
 
 3. **Engaging with Questions**
    - Browses all approved questions from other participants
