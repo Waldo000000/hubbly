@@ -31,7 +31,6 @@ A real-time audience engagement platform focused on Q&A functionality. Similar t
 - Creates a new session with a title and optional description
 - Receives a simple 6-digit session code to share
 - Gets a unique session link for easy sharing
-- Generates and shows the link in a form of a QR code 
 
 **Key Benefits**:
 - No complex setup or configuration
