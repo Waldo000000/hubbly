@@ -12,6 +12,11 @@ Implements a single user story from a stories file. Automatically finds the firs
 
 Usage: `/implement-story feature_session_creation.md`
 
+### `/check-conflicts`
+Analyzes projectmanagement/* files and CLAUDE.md for conflicting information that could confuse an LLM. Reviews technical specifications, product requirements, and setup instructions for inconsistencies.
+
+Usage: `/check-conflicts`
+
 ## Project Structure
 
 - **Frontend**: Next.js 14+ with React 18+ and TypeScript

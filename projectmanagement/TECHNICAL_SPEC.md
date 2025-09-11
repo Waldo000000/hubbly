@@ -14,8 +14,14 @@ A real-time Q&A application for events, meetings, and presentations. Users can c
 ### Backend
 - **Next.js API Routes** - Server-side API
 - **Prisma** - ORM for database operations
-- **PostgreSQL** - Primary database
+- **PostgreSQL** - Primary database (production)
+- **SQLite** - Test database for integration tests
 - **NextAuth.js** - Authentication handling
+
+### Database Philosophy
+- Core business logic remains compatible with SQLite for confident test coverage
+- Postgres-specific optimizations (indexes, JSONB, full-text search) allowed for production value-add
+- Avoid Postgres-only features that would change business logic behavior
 
 ### Authentication
 - **Google OAuth 2.0** - Single sign-on via NextAuth.js
@@ -199,6 +205,12 @@ GOOGLE_CLIENT_SECRET=...
 1. PostgreSQL database creation
 2. Prisma schema migration
 3. Database seeding (optional)
+
+### Testing
+- Comprehensive testing strategy with focus on integration tests
+- See [TESTING_STRATEGY.md](./TESTING_STRATEGY.md) for detailed approach
+- SQLite in-memory database for fast, isolated testing
+- Single command execution: `npm test`
 
 ### Deployment
 - **Vercel** recommended for Next.js deployment
