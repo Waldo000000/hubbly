@@ -5,7 +5,22 @@
       "Bash(git:*)",
       "Bash(npm:*)",
       "Bash(mkdir:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(npx prisma generate:*)",
+      "Bash(npx tsc:*)",
+      "Bash(docker run:*)",
+      "Bash(curl:*)",
+      "Bash(npx prisma:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)",
+      "Bash(netstat:*)",
+      "Bash(pkill:*)",
+      "Bash(findstr:*)",
+      "Bash(psql:*)",
+      "Bash(node:*)",
+      "Bash(taskkill:*)",
+      "WebFetch(domain:supabase.com)"
     ],
     "deny": [],
     "ask": []

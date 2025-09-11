@@ -27,8 +27,17 @@ Usage: `/implement-story feature_session_creation.md`
 - `npm run lint` - Run ESLint
 - `npm start` - Start production server
 
+## Database Commands
+
+- `npx prisma generate` - Generate Prisma client
+- `npx prisma migrate dev` - Run database migrations in development
+- `npx prisma studio` - Open Prisma Studio (database GUI)
+
 ## Key Files
 
-- `PRODUCT_SPEC.md` - Product requirements and features
-- `TECHNICAL_SPEC.md` - Technical architecture and implementation details
-- `feature_*.md` - User stories for specific features
+- `projectmanagement/PRODUCT_SPEC.md` - Product requirements and features
+- `projectmanagement/TECHNICAL_SPEC.md` - Technical architecture and implementation details
+- `projectmanagement/feature_*.md` - User stories for specific features
+- `prisma/schema.prisma` - Database schema and models
+- `.env` - Environment variables (not committed to git)
+- `.env.example` - Environment variables template
