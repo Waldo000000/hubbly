@@ -21,4 +21,6 @@ Make sure to:
 - Implement proper error handling and validation
 - Write clean, maintainable code
 - Test your implementation if possible
+- If there are build or development environment errors, always fix them before moving on
+- Consider that the code pushed must always also work in the production environment (a Vercel app connected to Superbase postgres instance via Prisma)
 - Update the story status to "Completed" when finished

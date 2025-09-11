@@ -4,7 +4,7 @@
 
 **Goal:** Establish database foundation with Users and Sessions tables using Prisma ORM
 
-**Status:** Not Started
+**Status:** Completed
 
 **Tasks:**
 
@@ -26,7 +26,7 @@
 
 **Goal:** Enable host authentication using Google OAuth through NextAuth.js
 
-**Status:** Not Started
+**Status:** Completed
 
 **Tasks:**
 

@@ -20,7 +20,13 @@
       "Bash(psql:*)",
       "Bash(node:*)",
       "Bash(taskkill:*)",
-      "WebFetch(domain:supabase.com)"
+      "WebFetch(domain:supabase.com)",
+      "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"yes\" npx prisma migrate reset --force)",
+      "Bash(createdb:*)",
+      "Bash(cat:*)",
+      "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"yes\" npx prisma migrate dev --name \"init_with_nextauth\")",
+      "Bash(PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION=\"yes\" npx prisma db push --force-reset --accept-data-loss)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

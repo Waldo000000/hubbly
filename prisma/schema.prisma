@@ -1,8 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native", "windows"]
 }
 
@@ -12,60 +9,50 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-enum QuestionStatus {
-  pending
-  approved
-  dismissed
-  answered
-}
-
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String
-  image     String?
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  sessions Session[]
+  id            String      @id @default(cuid())
+  email         String      @unique
+  name          String?
+  image         String?
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+  emailVerified DateTime?   @map("email_verified")
+  accounts      Account[]
+  qaSessions    QaSession[] @relation("HostSessions")
+  sessions      Session[]
 
   @@map("users")
 }
 
-model Session {
-  id                   String    @id @default(cuid())
+model QaSession {
+  id                   String     @id @default(cuid())
   title                String
   description          String?
-  code                 String    @unique @db.VarChar(6)
-  hostId               String    @map("host_id")
-  isActive             Boolean   @default(true) @map("is_active")
-  isAcceptingQuestions Boolean   @default(true) @map("is_accepting_questions")
-  createdAt            DateTime  @default(now()) @map("created_at")
-  updatedAt            DateTime  @updatedAt @map("updated_at")
-  expiresAt            DateTime  @map("expires_at")
+  code                 String     @unique @db.VarChar(6)
+  hostId               String     @map("host_id")
+  isActive             Boolean    @default(true) @map("is_active")
+  isAcceptingQuestions Boolean    @default(true) @map("is_accepting_questions")
+  createdAt            DateTime   @default(now()) @map("created_at")
+  updatedAt            DateTime   @updatedAt @map("updated_at")
+  expiresAt            DateTime   @map("expires_at")
+  host                 User       @relation("HostSessions", fields: [hostId], references: [id], onDelete: Cascade)
+  questions            Question[]
 
-  // Relations
-  host      User       @relation(fields: [hostId], references: [id], onDelete: Cascade)
-  questions Question[]
-
-  @@map("sessions")
+  @@map("qa_sessions")
 }
 
 model Question {
   id          String         @id @default(cuid())
   sessionId   String         @map("session_id")
   authorName  String?        @map("author_name")
-  content     String         @db.Text
+  content     String
   voteCount   Int            @default(0) @map("vote_count")
   status      QuestionStatus @default(pending)
   isAnonymous Boolean        @default(true) @map("is_anonymous")
   createdAt   DateTime       @default(now()) @map("created_at")
   updatedAt   DateTime       @updatedAt @map("updated_at")
-
-  // Relations
-  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  votes   Vote[]
+  qaSession   QaSession      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  votes       Vote[]
 
   @@map("questions")
 }
@@ -75,11 +62,53 @@ model Vote {
   questionId String   @map("question_id")
   voterIp    String   @map("voter_ip")
   createdAt  DateTime @default(now()) @map("created_at")
+  question   Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
-  // Relations
-  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
-
-  // Prevent duplicate votes from same IP for same question
   @@unique([questionId, voterIp])
   @@map("votes")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  expires      DateTime
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+enum QuestionStatus {
+  pending
+  approved
+  dismissed
+  answered
 }

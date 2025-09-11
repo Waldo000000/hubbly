@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 
 interface HealthStatus {
   status: string
@@ -48,19 +49,21 @@ export default function HomePage() {
         </p>
         
         <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '3rem' }}>
-          <button 
-            style={{
-              padding: '0.75rem 2rem',
-              fontSize: '1.1rem',
-              backgroundColor: '#0070f3',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer'
-            }}
-          >
-            Create Session
-          </button>
+          <Link href="/create" style={{ textDecoration: 'none' }}>
+            <button 
+              style={{
+                padding: '0.75rem 2rem',
+                fontSize: '1.1rem',
+                backgroundColor: '#0070f3',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer'
+              }}
+            >
+              Create Session
+            </button>
+          </Link>
           <button 
             style={{
               padding: '0.75rem 2rem',
