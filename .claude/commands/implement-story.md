@@ -11,8 +11,8 @@ Now, follow these steps to complete your task and think about it:
 2. Identify the first story that is not marked as complete or finished.
 3. Perform that story
 
-When implementing the story, keep in mind the functional spec for the application: @PRODUCT_SPEC.md
-When writing the code keep in mind the technical guidelines: @TECHNICAL_SPEC.md
+When implementing the story, keep in mind the functional spec for the application: @projectmanagement/PRODUCT_SPEC.md
+When writing the code keep in mind the technical guidelines: @projectmanagement/TECHNICAL_SPEC.md
 
 Make sure to:
 - Follow the existing code conventions and patterns in the project

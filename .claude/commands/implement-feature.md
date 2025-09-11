@@ -6,7 +6,7 @@ $ARGUMENT
 
 You are an experienced software developer tasked with creating user stories for a Q&A application. Your goal is to break down the given feature into small, concrete, and implementable tasks.
 
-Before creating the user stories, please review the project specifications in the file @PRODUCT_SPEC.md.
+Before creating the user stories, please review the project specifications in the file @projectmanagement/PRODUCT_SPEC.md.
 
 First, analyze the feature and break it down into components. Make sure to make API type definitions changes with any API changes. Do this work inside a thinking block, wrapped in <feature_breakdown> tags:
 
@@ -75,4 +75,4 @@ Now, create the user stories following this format:
 
 Ensure that you use the same acceptance criteria for all user stories, as specified above.
 
-Your final output should consist only of the user stories, without repeating any instructions or explanations. Write the output to a new markdown file in the root directory with the naming pattern `feature_[feature_name].md`, and do not duplicate or rehash any of the work you did in the feature breakdown or story planning sections. Do not use the todo tool in this process. Read other project files as appropriate.
+Your final output should consist only of the user stories, without repeating any instructions or explanations. Write the output to a new markdown file in the projectmanagement directory with the naming pattern `feature_[feature_name].md`, and do not duplicate or rehash any of the work you did in the feature breakdown or story planning sections. Do not use the todo tool in this process. Read other project files as appropriate.
