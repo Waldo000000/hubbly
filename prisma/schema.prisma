@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native", "windows"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum QuestionStatus {
+  pending
+  approved
+  dismissed
+  answered
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  image     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  sessions Session[]
+
+  @@map("users")
+}
+
+model Session {
+  id                   String    @id @default(cuid())
+  title                String
+  description          String?
+  code                 String    @unique @db.VarChar(6)
+  hostId               String    @map("host_id")
+  isActive             Boolean   @default(true) @map("is_active")
+  isAcceptingQuestions Boolean   @default(true) @map("is_accepting_questions")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+  expiresAt            DateTime  @map("expires_at")
+
+  // Relations
+  host      User       @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  questions Question[]
+
+  @@map("sessions")
+}
+
+model Question {
+  id          String         @id @default(cuid())
+  sessionId   String         @map("session_id")
+  authorName  String?        @map("author_name")
+  content     String         @db.Text
+  voteCount   Int            @default(0) @map("vote_count")
+  status      QuestionStatus @default(pending)
+  isAnonymous Boolean        @default(true) @map("is_anonymous")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  // Relations
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  votes   Vote[]
+
+  @@map("questions")
+}
+
+model Vote {
+  id         String   @id @default(cuid())
+  questionId String   @map("question_id")
+  voterIp    String   @map("voter_ip")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  // Prevent duplicate votes from same IP for same question
+  @@unique([questionId, voterIp])
+  @@map("votes")
+}
