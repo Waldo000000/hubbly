@@ -1,55 +1,93 @@
 # Hubbly Testing Strategy
 
 ## Overview
-Comprehensive testing approach prioritizing integration tests with database interactions, focusing on developer experience and single-command execution.
+Behavior-focused testing approach that validates business logic and user workflows while avoiding over-testing of library functionality. Prioritize integration tests with minimal mocking.
+
+## Testing Philosophy
+**Test behavior, not implementation. Avoid mocks where possible.**
+
+### What to Test
+- Business logic and domain rules
+- User workflows and interactions
+- API contracts and data flow
+- Error handling and edge cases
+- Integration between our code components
+
+### What NOT to Test
+- Third-party library internals (Prisma, NextAuth, React)
+- Framework behavior (Next.js routing, React rendering)
+- Obvious getter/setter functions
+- Configuration objects without logic
+- Type definitions without runtime behavior
 
 ## Testing Framework
 - **Jest** - Primary test runner and assertion library
 - **React Testing Library** - Component testing with user-focused approach
 - **SQLite** - In-memory test database for integration tests
-- **Supertest** - HTTP API testing (optional, for API route testing)
+- **Real implementations** where possible, minimal mocking
 
 ## Test Types & Priorities
 
 ### 1. Integration Tests (Primary Focus)
-Test complete user workflows including database operations:
-- API routes with database interactions
-- NextAuth authentication flows
-- Session creation and management
-- Question submission and voting
-- Real-time features
+Test complete business workflows end-to-end:
+- API routes with real database operations (SQLite in-memory)
+- User authentication flows  
+- Session creation and management workflows
+- Question submission and voting behavior
+- Real-time features with actual data flow
 
 ### 2. Component Tests
-React components with user interactions:
-- Form submissions
-- UI state management
-- User event handling
-- Accessibility testing
+Test user-facing behavior and interactions:
+- User interactions and form submissions
+- UI state changes in response to user actions
+- Error states and loading behaviors
+- Accessibility and user experience
 
-### 3. Unit Tests
-Individual functions and utilities:
-- Data validation functions
-- Utility functions
-- Business logic helpers
+### 3. Business Logic Tests
+Test domain-specific rules and validations:
+- Custom validation functions
+- Business rule implementations
+- Data transformation logic
+- Error handling strategies
 
-### 4. Database Migration Tests
-Ensure schema changes work correctly:
-- Migration rollback/forward testing
-- Schema validation
-- Seed data integrity
+### 4. Contract Tests
+Ensure interfaces work as expected:
+- API input/output contracts
+- Component prop interfaces
+- External service integrations
+
+## Mocking Strategy
+
+### When to Mock
+- **External APIs** - Third-party services we don't control
+- **Environment-specific resources** - File system, network calls
+- **Slow operations** - Only when they significantly impact test performance
+- **Non-deterministic behavior** - Random number generation, current time
+
+### When NOT to Mock
+- **Database operations** - Use SQLite in-memory instead
+- **Internal business logic** - Test the real implementation
+- **Framework behavior** - Don't mock Next.js, React, Prisma
+- **Simple utilities** - Test actual validation functions, formatters
+
+### Preferred Alternatives to Mocking
+- **In-memory databases** - SQLite for database tests
+- **Test doubles** - Real implementations with test data
+- **Environment variables** - Set test-specific config values
+- **Dependency injection** - Pass test implementations where needed
 
 ## Database Testing Approach
 
 ### SQLite In-Memory Strategy
-- **Zero setup** - No external database dependencies
+- **Real database operations** - No mocking Prisma or SQL
 - **Fresh database per test suite** - Complete isolation
-- **Fast reset** - Quick test execution
+- **Fast reset** - Quick test execution with real data
 - **Migration testing** - Full Prisma migration support
-- **Single command** - `npm test` runs everything
+- **Business logic focus** - Test our database interactions, not Prisma internals
 
 ### Test Database Configuration
 ```typescript
-// Test-specific Prisma configuration
+// Test-specific Prisma configuration for real database operations
 const testDatabaseUrl = process.env.NODE_ENV === 'test' 
   ? 'file:./test.db' 
   : process.env.DATABASE_URL;
@@ -93,9 +131,18 @@ __tests__/
 - `npm run test:unit` - Run only unit tests
 
 ## Coverage Targets
-- **Integration Tests**: 80%+ of API routes and database operations
-- **Component Tests**: 70%+ of UI components
-- **Overall Coverage**: 75%+ code coverage
+**Focus on meaningful coverage, not percentage targets.**
+
+### Quality over Quantity
+- **Business Logic**: 100% of critical business workflows tested
+- **User Journeys**: All major user flows covered end-to-end
+- **Error Handling**: Key error scenarios and edge cases tested
+- **API Contracts**: All public API endpoints tested with realistic data
+
+### Practical Coverage Goals
+- **Integration Tests**: Cover all business-critical workflows
+- **Component Tests**: Focus on user interactions and state changes
+- **Avoid Coverage Theater**: Don't test simple getters, configurations, or library wrappers
 
 ## Test Data Strategy
 

@@ -28,9 +28,21 @@ Usage: `/check-conflicts`
 ## Development Commands
 
 - `npm run dev` - Start development server
-- `npm run build` - Build for production
+- `npm run build` - Build for production (CI/deployment only)
+- `npm run build:local` - Build for local verification
 - `npm run lint` - Run ESLint
 - `npm start` - Start production server
+
+### ⚠️ CRITICAL: Pre-Push Requirements
+
+**ALWAYS run `npm run build:local` before pushing to git!**
+
+1. Run tests: `npm test`
+2. Verify build passes: `npm run build:local`
+3. Check linting: `npm run lint`
+4. Only then push to git
+
+Never push without verifying the build passes locally. Use `build:local`, not `build`.
 
 ## Database Commands
 
