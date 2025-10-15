@@ -1,24 +1,18 @@
 /**
- * Unit tests for validation utility functions
+ * Unit tests for session validation and utility functions
  * Tests individual functions and business logic helpers
+ * @jest-environment node
  */
 
-// Dummy validation functions for testing
-// TODO: Replace with actual validation utilities when implemented
-const validateSessionCode = (code: string): boolean => {
-  if (!code) return false;
-  if (code.length !== 6) return false;
-  return /^[A-Z0-9]{6}$/.test(code);
-};
+import { 
+  generateUniqueSessionCode, 
+  getSessionExpirationDate, 
+  validateSessionInput 
+} from '@/lib/session-utils'
+import { getTestDb, resetTestDb } from '../setup/test-db'
 
-const validateSessionTitle = (title: string): { valid: boolean; error?: string } => {
-  if (!title) return { valid: false, error: 'Title is required' };
-  if (title.length < 3) return { valid: false, error: 'Title must be at least 3 characters' };
-  if (title.length > 100) return { valid: false, error: 'Title must be less than 100 characters' };
-  return { valid: true };
-};
-
-const generateSessionCode = (): string => {
+// Mock generateUniqueSessionCode for some tests to avoid database dependency
+const mockGenerateSessionCode = (): string => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let result = '';
   for (let i = 0; i < 6; i++) {
@@ -27,66 +21,145 @@ const generateSessionCode = (): string => {
   return result;
 };
 
-describe('Session Code Validation', () => {
-  it('validates correct session codes', () => {
-    expect(validateSessionCode('ABC123')).toBe(true);
-    expect(validateSessionCode('XYZ789')).toBe(true);
-    expect(validateSessionCode('123456')).toBe(true);
-  });
+describe('Session Input Validation', () => {
+  describe('validateSessionInput', () => {
+    it('validates correct session input', () => {
+      const input = {
+        title: 'Valid Session Title',
+        description: 'A valid session description'
+      };
+      const result = validateSessionInput(input);
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toEqual({});
+    });
 
-  it('rejects invalid session codes', () => {
-    expect(validateSessionCode('')).toBe(false);
-    expect(validateSessionCode('ABC12')).toBe(false); // Too short
-    expect(validateSessionCode('ABC1234')).toBe(false); // Too long
-    expect(validateSessionCode('abc123')).toBe(false); // Lowercase
-    expect(validateSessionCode('AB-123')).toBe(false); // Special characters
+    it('rejects empty title', () => {
+      const input = {
+        title: '',
+        description: 'Valid description'
+      };
+      const result = validateSessionInput(input);
+      expect(result.isValid).toBe(false);
+      expect(result.errors.title).toBeDefined();
+    });
+
+    it('rejects title that is too short', () => {
+      const input = {
+        title: 'Hi',
+        description: 'Valid description'
+      };
+      const result = validateSessionInput(input);
+      expect(result.isValid).toBe(false);
+      expect(result.errors.title).toContain('at least 3 characters');
+    });
+
+    it('rejects title that is too long', () => {
+      const input = {
+        title: 'a'.repeat(101),
+        description: 'Valid description'
+      };
+      const result = validateSessionInput(input);
+      expect(result.isValid).toBe(false);
+      expect(result.errors.title).toContain('100 characters');
+    });
+
+    it('accepts missing description', () => {
+      const input = {
+        title: 'Valid Title'
+      };
+      const result = validateSessionInput(input);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('rejects description that is too long', () => {
+      const input = {
+        title: 'Valid Title',
+        description: 'a'.repeat(501)
+      };
+      const result = validateSessionInput(input);
+      expect(result.isValid).toBe(false);
+      expect(result.errors.description).toContain('500 characters');
+    });
   });
 });
 
-describe('Session Title Validation', () => {
-  it('validates correct session titles', () => {
-    const result = validateSessionTitle('Valid Title');
-    expect(result.valid).toBe(true);
-    expect(result.error).toBeUndefined();
+describe('Session Expiration Date', () => {
+  it('generates expiration date 24 hours from now', () => {
+    const expirationDate = getSessionExpirationDate();
+    const now = new Date();
+    const expectedExpiration = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    
+    // Allow for small timing differences (within 1 second)
+    const timeDiff = Math.abs(expirationDate.getTime() - expectedExpiration.getTime());
+    expect(timeDiff).toBeLessThan(1000);
   });
 
-  it('rejects empty titles', () => {
-    const result = validateSessionTitle('');
-    expect(result.valid).toBe(false);
-    expect(result.error).toBe('Title is required');
-  });
-
-  it('rejects short titles', () => {
-    const result = validateSessionTitle('Hi');
-    expect(result.valid).toBe(false);
-    expect(result.error).toBe('Title must be at least 3 characters');
-  });
-
-  it('rejects long titles', () => {
-    const longTitle = 'a'.repeat(101);
-    const result = validateSessionTitle(longTitle);
-    expect(result.valid).toBe(false);
-    expect(result.error).toBe('Title must be less than 100 characters');
+  it('accepts custom hours parameter', () => {
+    const customHours = 48;
+    const expirationDate = getSessionExpirationDate(customHours);
+    const now = new Date();
+    const expectedExpiration = new Date(now.getTime() + customHours * 60 * 60 * 1000);
+    
+    // Allow for small timing differences (within 1 second)
+    const timeDiff = Math.abs(expirationDate.getTime() - expectedExpiration.getTime());
+    expect(timeDiff).toBeLessThan(1000);
   });
 });
 
 describe('Session Code Generation', () => {
+  const db = getTestDb();
+
+  beforeEach(async () => {
+    await resetTestDb();
+  });
+
   it('generates codes of correct length', () => {
-    const code = generateSessionCode();
+    const code = mockGenerateSessionCode();
     expect(code).toHaveLength(6);
   });
 
   it('generates codes with valid characters', () => {
-    const code = generateSessionCode();
-    expect(validateSessionCode(code)).toBe(true);
+    const code = mockGenerateSessionCode();
+    expect(/^[A-Z0-9]{6}$/.test(code)).toBe(true);
   });
 
   it('generates unique codes', () => {
     const codes = new Set();
     for (let i = 0; i < 100; i++) {
-      codes.add(generateSessionCode());
+      codes.add(mockGenerateSessionCode());
     }
     // Should generate mostly unique codes (allowing for rare collisions)
     expect(codes.size).toBeGreaterThan(90);
   });
+
+  it('generates unique session codes using database', async () => {
+    // Create test user first
+    const testUser = await db.user.create({
+      data: {
+        email: 'test@example.com',
+        name: 'Test User'
+      }
+    });
+
+    // Generate first unique code
+    const code1 = await generateUniqueSessionCode(db);
+    
+    // Create session with that code
+    await db.qaSession.create({
+      data: {
+        title: 'Test Session',
+        code: code1,
+        hostId: testUser.id,
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+      }
+    });
+
+    // Generate another code - should be different
+    const code2 = await generateUniqueSessionCode(db);
+    expect(code1).not.toBe(code2);
+    
+    // Both should be valid format
+    expect(/^[A-Z0-9]{6}$/.test(code1)).toBe(true);
+    expect(/^[A-Z0-9]{6}$/.test(code2)).toBe(true);
+  }, 10000);
 });

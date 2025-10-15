@@ -1,6 +1,7 @@
 /**
  * Integration test for health API endpoint
  * Tests API route with database connection
+ * @jest-environment node
  */
 
 import { createMocks } from 'node-mocks-http';
