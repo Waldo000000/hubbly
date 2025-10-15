@@ -50,6 +50,23 @@ Never push without verifying the build passes locally. Use `build:local`, not `b
 - `npx prisma migrate dev` - Run database migrations in development
 - `npx prisma studio` - Open Prisma Studio (database GUI)
 
+## Testing Setup
+
+- **Test Framework**: Jest with React Testing Library
+- **Test Database**: SQLite (in-memory for isolation)
+- **Test Configuration**: `.env.test` - Test environment variables
+- **Test Database Schema**: `prisma/schema.test.prisma` - Separate test schema
+- **Test Execution**: Serial (maxWorkers: 1) to avoid database contention
+
+### Test Files
+
+- `__tests__/integration/sessions.test.ts` - Session business logic integration tests
+- `__tests__/utils/session-utils.test.ts` - Session utilities unit tests  
+- `__tests__/integration/session-lifecycle.test.ts` - Complete session workflow tests
+- `__tests__/setup/test-db.ts` - Test database utilities
+- `jest.config.js` - Jest configuration with Next.js support
+- `jest.setup.js` - Global test setup and database cleanup
+
 ## Key Files
 
 - `projectmanagement/PRODUCT_SPEC.md` - Product requirements and features
@@ -58,6 +75,10 @@ Never push without verifying the build passes locally. Use `build:local`, not `b
 - `prisma/schema.prisma` - Database schema and models (includes NextAuth tables)
 - `src/lib/auth.ts` - NextAuth.js configuration with Google OAuth
 - `src/app/api/auth/[...nextauth]/route.ts` - NextAuth.js API routes
+- `src/app/api/sessions/route.ts` - Session creation API endpoint (POST)
+- `src/app/api/sessions/[code]/route.ts` - Session retrieval API endpoint (GET)
+- `src/lib/session-utils.ts` - Session code generation and validation utilities
+- `src/types/session.ts` - TypeScript types for session entities and API responses
 - `src/middleware.ts` - Route protection middleware
 - `src/types/next-auth.d.ts` - NextAuth TypeScript type extensions
 - `.env` - Environment variables (not committed to git)
