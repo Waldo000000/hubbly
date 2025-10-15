@@ -1,189 +1,171 @@
 # Hubbly Testing Strategy
 
 ## Overview
-Behavior-focused testing approach that validates business logic and user workflows while avoiding over-testing of library functionality. Prioritize integration tests with minimal mocking.
+Pragmatic testing approach focused on business logic and core functionality to enable rapid prototyping while maintaining reliability. Prioritize simplicity and essential business rule validation over comprehensive coverage.
 
 ## Testing Philosophy
-**Test behavior, not implementation. Avoid mocks where possible.**
+**Test business logic that matters for the product. Favor simplicity and rapid prototyping over exhaustive coverage.**
 
-### What to Test
-- Business logic and domain rules
-- User workflows and interactions
-- API contracts and data flow
-- Error handling and edge cases
-- Integration between our code components
+### Rapid Prototyping First
+- Get working features tested quickly
+- Avoid over-engineering test infrastructure  
+- Focus on business logic, not framework edge cases
+- Prefer working code over perfect test coverage
 
-### What NOT to Test
+### What to Test (Priority Order)
+1. **Core business logic** - Session creation, validation, data rules
+2. **Essential user workflows** - Basic happy paths that users depend on
+3. **Critical business rules** - Code generation, uniqueness, expiration
+4. **Basic data relationships** - User sessions, questions, votes
+
+### What NOT to Test  
 - Third-party library internals (Prisma, NextAuth, React)
 - Framework behavior (Next.js routing, React rendering)
-- Obvious getter/setter functions
-- Configuration objects without logic
-- Type definitions without runtime behavior
+- HTTP request/response mechanics - focus on business logic
+- Comprehensive error scenarios - test main cases only
+- UI component rendering details - prioritize business logic over UI
+- Complex edge cases during rapid prototyping phase
 
 ## Testing Framework
-- **Jest** - Primary test runner and assertion library
-- **React Testing Library** - Component testing with user-focused approach
-- **SQLite** - In-memory test database for integration tests
-- **Real implementations** where possible, minimal mocking
+- **Jest** - Primary test runner and assertion library  
+- **React Testing Library** - Component testing (minimal, business logic focused)
+- **SQLite** - Fast, simple test database for business logic testing
+- **Real implementations** for business logic, minimal mocking
 
 ## Test Types & Priorities
 
-### 1. Integration Tests (Primary Focus)
-Test complete business workflows end-to-end:
-- API routes with real database operations (SQLite in-memory)
-- User authentication flows  
-- Session creation and management workflows
-- Question submission and voting behavior
-- Real-time features with actual data flow
+### 1. Business Logic Tests (Primary Focus)
+Test core domain functionality and rules:
+- Session creation, validation, and lifecycle
+- Code generation and uniqueness rules
+- Data transformations and business calculations
+- Essential validation functions
 
-### 2. Component Tests
-Test user-facing behavior and interactions:
-- User interactions and form submissions
-- UI state changes in response to user actions
-- Error states and loading behaviors
-- Accessibility and user experience
+### 2. Integration Tests (Selective)
+Test key workflows with real database operations:
+- End-to-end session lifecycle (create → retrieve → use)
+- Basic database relationships and data flow
+- Critical business workflows that users depend on
+- Focus on business logic, not HTTP mechanics
 
-### 3. Business Logic Tests
-Test domain-specific rules and validations:
-- Custom validation functions
-- Business rule implementations
-- Data transformation logic
-- Error handling strategies
+### 3. Component Tests (Minimal)
+Test only when business logic is involved:
+- Form validation behavior with real business rules
+- Components that contain significant business logic
+- Skip pure UI rendering tests - focus on business behavior
 
-### 4. Contract Tests
-Ensure interfaces work as expected:
-- API input/output contracts
-- Component prop interfaces
-- External service integrations
+### 4. Contract Tests (As Needed)
+Only test interfaces that encapsulate business logic:
+- Critical data transformation interfaces
+- Business rule boundary definitions
 
-## Mocking Strategy
+## Mocking Strategy (Keep It Simple)
 
 ### When to Mock
 - **External APIs** - Third-party services we don't control
-- **Environment-specific resources** - File system, network calls
-- **Slow operations** - Only when they significantly impact test performance
-- **Non-deterministic behavior** - Random number generation, current time
+- **Non-deterministic behavior** - Only when it breaks test reliability
+- **Slow operations** - Only if they make tests noticeably slow
 
-### When NOT to Mock
-- **Database operations** - Use SQLite in-memory instead
-- **Internal business logic** - Test the real implementation
+### When NOT to Mock (Prioritize Real Implementations)
+- **Business logic** - Always test the real implementation  
+- **Database operations** - Use fast SQLite instead of mocking
 - **Framework behavior** - Don't mock Next.js, React, Prisma
-- **Simple utilities** - Test actual validation functions, formatters
+- **Validation functions** - Test actual business rule implementations
 
 ### Preferred Alternatives to Mocking
-- **In-memory databases** - SQLite for database tests
-- **Test doubles** - Real implementations with test data
-- **Environment variables** - Set test-specific config values
-- **Dependency injection** - Pass test implementations where needed
+- **SQLite database** - Fast, simple, real database operations
+- **Test data** - Real objects with test values
+- **Environment variables** - Simple test configuration
+- **Keep it simple** - Avoid complex mocking setups
 
 ## Database Testing Approach
 
-### SQLite In-Memory Strategy
-- **Real database operations** - No mocking Prisma or SQL
-- **Fresh database per test suite** - Complete isolation
-- **Fast reset** - Quick test execution with real data
-- **Migration testing** - Full Prisma migration support
-- **Business logic focus** - Test our database interactions, not Prisma internals
+### SQLite Strategy (Simple & Fast)
+- **Real database operations** - No mocking Prisma or business logic
+- **Fast SQLite database** - No Docker complexity, just works
+- **Automatic cleanup** - Fresh state between tests
+- **Business logic focus** - Test our code, not Prisma internals
 
 ### Test Database Configuration
 ```typescript
-// Test-specific Prisma configuration for real database operations
-const testDatabaseUrl = process.env.NODE_ENV === 'test' 
-  ? 'file:./test.db' 
-  : process.env.DATABASE_URL;
+// .env.test  
+DATABASE_URL="file:./test.db"
+
+// Automatic test database setup with SQLite
+// - Fast startup (no containers)
+// - Isolated test environment
+// - Real database operations
+// - Simple cleanup between tests
 ```
 
-## Test Organization
+### Why SQLite Over Docker PostgreSQL
+- **Rapid prototyping** - No Docker setup complexity
+- **Fast execution** - Immediate test startup
+- **Simple CI/CD** - No container management
+- **Good enough** - SQLite covers business logic testing needs
+- **Production differences** - Acceptable trade-off for speed and simplicity
+
+## Test Organization (Keep It Simple)
 
 ### File Structure
 ```
 __tests__/
-├── integration/          # API routes + database
-│   ├── auth.test.ts
-│   ├── sessions.test.ts
-│   └── questions.test.ts
-├── components/           # React component tests
-│   ├── CreateSessionForm.test.tsx
-│   └── QuestionList.test.tsx
-├── utils/               # Unit tests
+├── integration/          # End-to-end business workflows
+│   └── session-lifecycle.test.ts
+├── components/           # Only when business logic involved
+│   └── [minimal component tests]
+├── utils/               # Business logic tests
 │   └── validation.test.ts
 └── setup/
-    ├── jest.setup.ts    # Global test setup
-    └── test-utils.tsx   # Testing utilities
+    ├── test-db.ts       # Simple SQLite test utilities
+    └── test-factories.ts # Basic test data creation
 ```
 
-### Naming Conventions
-- Integration tests: `*.integration.test.ts`
-- Component tests: `*.test.tsx`
-- Unit tests: `*.test.ts`
-- Test utilities: `test-utils.ts`
+### Naming Conventions (Simple)
+- Business logic tests: `*.test.ts`
+- Integration tests: `*.test.ts` (in integration folder)
+- Component tests: `*.test.tsx` (only when needed)
 
-## Test Commands
+## Test Commands (Keep It Simple)
 
 ### Primary Commands
-- `npm test` - Run all tests
+- `npm test` - Run all tests (main command)
 - `npm run test:watch` - Watch mode for development
-- `npm run test:coverage` - Generate coverage report
 
-### Additional Commands
-- `npm run test:integration` - Run only integration tests
-- `npm run test:components` - Run only component tests
-- `npm run test:unit` - Run only unit tests
+### Optional Commands (If Needed)
+- `npm run test:integration` - Run integration tests only
+- `npm run test:unit` - Run business logic tests only
+- `npm run test:coverage` - Coverage when needed for analysis
 
-## Coverage Targets
-**Focus on meaningful coverage, not percentage targets.**
+## Coverage Philosophy
+**Test what matters for the product, not what looks good in reports.**
 
-### Quality over Quantity
-- **Business Logic**: 100% of critical business workflows tested
-- **User Journeys**: All major user flows covered end-to-end
-- **Error Handling**: Key error scenarios and edge cases tested
-- **API Contracts**: All public API endpoints tested with realistic data
+### Pragmatic Coverage Goals
+- **Core business logic**: Essential rules and validations tested
+- **Key user workflows**: Main happy paths working
+- **Critical business rules**: Session codes, uniqueness, validation
+- **Skip coverage theater**: Don't test framework code or simple utilities
 
-### Practical Coverage Goals
-- **Integration Tests**: Cover all business-critical workflows
-- **Component Tests**: Focus on user interactions and state changes
-- **Avoid Coverage Theater**: Don't test simple getters, configurations, or library wrappers
+## Test Data Strategy (Minimal)
 
-## Test Data Strategy
+### Simple Test Data
+- Basic factories only when needed for business logic testing
+- Real objects with test values
+- Keep test data creation simple and straightforward
 
-### Test Fixtures
-- Reusable test data factories
-- Consistent user/session/question objects
-- Isolated test data per test suite
+### Database State Management  
+- SQLite database with automatic cleanup
+- Fresh state between tests (handled automatically)
+- No complex container management needed
 
-### Database State Management
-- Fresh SQLite database per test suite
-- Prisma migrations run automatically
-- No cleanup required (in-memory disposal)
-
-## Continuous Integration
+## Continuous Integration (Simplified)
 - All tests must pass before merge
-- Coverage reports generated on CI
-- Fast feedback loop (< 2 minutes total test time)
+- Fast feedback loop (tests should complete quickly)
+- Keep CI simple - no complex Docker orchestration
 
-## Migration Testing Approach
-
-### Schema Validation
-- Test forward migrations
-- Test migration rollbacks
-- Verify data integrity during migrations
-- Validate foreign key constraints
-
-### Implementation
-```typescript
-describe('Database Migrations', () => {
-  beforeAll(async () => {
-    // Run all migrations on fresh SQLite DB
-    await prisma.$executeRaw`...`;
-  });
-  
-  // Test migration behavior
-});
-```
-
-## Developer Experience Goals
-1. **Zero setup** - Clone repo, `npm install`, `npm test` works
-2. **Fast feedback** - Tests complete in under 2 minutes
-3. **Clear failures** - Descriptive error messages and stack traces
-4. **Single command** - No separate database setup required
-5. **Watch mode** - Instant feedback during development
+## Developer Experience Goals (Rapid Prototyping Focus)
+1. **Minimal setup** - Clone repo, `npm test` works immediately
+2. **Fast feedback** - Tests complete quickly (SQLite advantage)
+3. **Clear failures** - Focus on business logic failures that matter
+4. **No infrastructure complexity** - No Docker, containers, or orchestration
+5. **Simple local development** - `npm test` and you're good to go

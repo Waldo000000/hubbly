@@ -15,13 +15,15 @@ A real-time Q&A application for events, meetings, and presentations. Users can c
 - **Next.js API Routes** - Server-side API
 - **Prisma** - ORM for database operations
 - **PostgreSQL** - Primary database (production)
-- **SQLite** - Test database for integration tests
+- **SQLite** - Local development and test database
 - **NextAuth.js** - Authentication handling
 
 ### Database Philosophy
-- Core business logic remains compatible with SQLite for confident test coverage
-- Postgres-specific optimizations (indexes, JSONB, full-text search) allowed for production value-add
-- Avoid Postgres-only features that would change business logic behavior
+- **SQLite-first development**: Local development and all testing use SQLite for speed and simplicity
+- **PostgreSQL production**: Production deployments use PostgreSQL via Supabase
+- **Database-agnostic business logic**: Core business logic remains compatible with both databases
+- **PostgreSQL optimizations**: Production can use Postgres-specific features (indexes, JSONB, full-text search) for performance
+- **CI/CD database reset**: Preview deployments automatically reset the entire database for clean testing
 
 ### Authentication
 - **Google OAuth 2.0** - Single sign-on via NextAuth.js
@@ -207,10 +209,20 @@ GOOGLE_CLIENT_SECRET=...
 3. Database seeding (optional)
 
 ### Testing
-- Comprehensive testing strategy with focus on integration tests
-- See [TESTING_STRATEGY.md](./TESTING_STRATEGY.md) for detailed approach
-- SQLite in-memory database for fast, isolated testing
-- Single command execution: `npm test`
+- **Pragmatic approach**: Focus on business logic testing, rapid prototyping friendly
+- **SQLite-based testing**: Fast, simple testing with real database operations
+- **Business logic focus**: Test core functionality, skip framework edge cases
+- **Jest + React Testing Library**: Primary testing framework with Next.js integration
+- **Automatic database cleanup**: Tests run with fresh SQLite database for reliability
+- **Simple setup**: No Docker complexity - `npm test` just works
+- See [TESTING_STRATEGY.md](./TESTING_STRATEGY.md) for detailed philosophy
+
+### Testing Commands
+- `npm test` - Run all tests (primary command)
+- `npm run test:watch` - Watch mode for development
+- `npm run test:integration` - Run integration/business logic tests  
+- `npm run test:unit` - Run utility/business logic tests
+- `npm run test:coverage` - Generate coverage report when needed
 
 ### Deployment
 - **Vercel** recommended for Next.js deployment
