@@ -10,9 +10,12 @@
     "reset-db": "node scripts/reset-db.cjs",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest --passWithNoTests",
-    "test:watch": "jest --watch --passWithNoTests",
-    "test:coverage": "jest --coverage --passWithNoTests",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:integration": "jest __tests__/integration",
+    "test:components": "jest __tests__/components",
+    "test:unit": "jest __tests__/utils",
     "postinstall": "prisma generate"
   },
   "prisma": {
