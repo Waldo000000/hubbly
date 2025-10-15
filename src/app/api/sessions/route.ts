@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     const { title, description } = body;
 
     // Validate input
-    const validation = validateSessionInput(title, description);
+    const validation = validateSessionInput({ title, description });
     if (!validation.isValid) {
       return NextResponse.json(
         {

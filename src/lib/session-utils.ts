@@ -18,7 +18,7 @@ function generateSessionCode(): string {
  * Generates a unique session code that doesn't already exist in the database
  * Retries up to 10 times if collisions occur
  */
-export async function generateUniqueSessionCode(): Promise<string> {
+export async function generateUniqueSessionCode(db = prisma): Promise<string> {
   const maxRetries = 10;
   let retries = 0;
 
@@ -26,7 +26,7 @@ export async function generateUniqueSessionCode(): Promise<string> {
     const code = generateSessionCode();
 
     // Check if code already exists
-    const existingSession = await prisma.qaSession.findUnique({
+    const existingSession = await db.qaSession.findUnique({
       where: { code },
       select: { id: true },
     });
@@ -44,39 +44,39 @@ export async function generateUniqueSessionCode(): Promise<string> {
 }
 
 /**
- * Calculates session expiration date (24 hours from now)
+ * Calculates session expiration date (24 hours from now by default)
  */
-export function getSessionExpirationDate(): Date {
+export function getSessionExpirationDate(hours: number = 24): Date {
   const now = new Date();
-  const expiresAt = new Date(now.getTime() + 24 * 60 * 60 * 1000); // 24 hours
+  const expiresAt = new Date(now.getTime() + hours * 60 * 60 * 1000);
   return expiresAt;
 }
 
 /**
  * Validates session input data
  */
-export function validateSessionInput(
-  title: string,
-  description?: string,
-): { isValid: boolean; errors: string[] } {
-  const errors: string[] = [];
+export function validateSessionInput(input: {
+  title: string;
+  description?: string;
+}): { isValid: boolean; errors: { title?: string; description?: string } } {
+  const errors: { title?: string; description?: string } = {};
 
   // Title validation
-  if (!title || title.trim().length === 0) {
-    errors.push("Title is required");
-  } else if (title.length < 3) {
-    errors.push("Title must be at least 3 characters long");
-  } else if (title.length > 100) {
-    errors.push("Title must be no more than 100 characters long");
+  if (!input.title || input.title.trim().length === 0) {
+    errors.title = "Title is required";
+  } else if (input.title.length < 3) {
+    errors.title = "Title must be at least 3 characters long";
+  } else if (input.title.length > 100) {
+    errors.title = "Title must be no more than 100 characters long";
   }
 
   // Description validation
-  if (description && description.length > 500) {
-    errors.push("Description must be no more than 500 characters long");
+  if (input.description && input.description.length > 500) {
+    errors.description = "Description must be no more than 500 characters long";
   }
 
   return {
-    isValid: errors.length === 0,
+    isValid: Object.keys(errors).length === 0,
     errors,
   };
 }
