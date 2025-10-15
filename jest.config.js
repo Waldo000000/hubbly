@@ -9,6 +9,12 @@ const createJestConfig = nextJest({
 const config = {
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
   testEnvironment: 'jsdom',
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+  },
+  testMatch: [
+    '<rootDir>/__tests__/**/*.{test,spec}.{js,jsx,ts,tsx}'
+  ],
   testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
@@ -17,17 +23,10 @@ const config = {
   ],
   coverageReporters: ['text', 'lcov', 'html'],
   coverageDirectory: 'coverage',
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
-  },
-  testMatch: [
-    '<rootDir>/__tests__/**/*.{test,spec}.{js,jsx,ts,tsx}',
-    '<rootDir>/src/**/__tests__/**/*.{js,jsx,ts,tsx}',
-    '<rootDir>/src/**/*.{test,spec}.{js,jsx,ts,tsx}',
-  ],
-  // Test database URL for Prisma
+  testTimeout: 30000,
+  // Use jsdom for all tests, override in specific test files if needed
   testEnvironmentOptions: {
-    url: 'http://localhost',
+    customExportConditions: [''],
   },
 };
 
