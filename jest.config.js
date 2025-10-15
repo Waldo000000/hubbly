@@ -16,6 +16,9 @@ const config = {
     '<rootDir>/__tests__/**/*.{test,spec}.{js,jsx,ts,tsx}'
   ],
   testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
+  transformIgnorePatterns: [
+    'node_modules/(?!(@auth|next-auth)/)'
+  ],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
     '!src/**/*.d.ts',
@@ -24,6 +27,8 @@ const config = {
   coverageReporters: ['text', 'lcov', 'html'],
   coverageDirectory: 'coverage',
   testTimeout: 30000,
+  // Run tests serially to avoid database contention
+  maxWorkers: 1,
   // Use jsdom for all tests, override in specific test files if needed
   testEnvironmentOptions: {
     customExportConditions: [''],
