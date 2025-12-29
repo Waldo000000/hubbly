@@ -3,17 +3,20 @@
 ## Available Commands
 
 ### `/implement-feature`
+
 Creates user stories from a high-level feature description. Breaks down features into implementable tasks with proper ordering and dependencies.
 
 Usage: `/implement-feature "Session creation"`
 
 ### `/implement-story`
+
 Implements a single user story from a stories file. Automatically finds the first incomplete story and implements it.
 
 Usage: `/implement-story feature_session_creation.md`
 
 ### `/check-conflicts`
-Analyzes projectmanagement/* files and CLAUDE.md for conflicting information that could confuse an LLM. Reviews technical specifications, product requirements, and setup instructions for inconsistencies.
+
+Analyzes projectmanagement/\* files and CLAUDE.md for conflicting information that could confuse an LLM. Reviews technical specifications, product requirements, and setup instructions for inconsistencies.
 
 Usage: `/check-conflicts`
 
@@ -61,7 +64,7 @@ Never push without verifying the build passes locally. Use `build:local`, not `b
 ### Test Files
 
 - `__tests__/integration/sessions.test.ts` - Session business logic integration tests
-- `__tests__/utils/session-utils.test.ts` - Session utilities unit tests  
+- `__tests__/utils/session-utils.test.ts` - Session utilities unit tests
 - `__tests__/integration/session-lifecycle.test.ts` - Complete session workflow tests
 - `__tests__/setup/test-db.ts` - Test database utilities
 - `jest.config.js` - Jest configuration with Next.js support
@@ -76,7 +79,9 @@ Never push without verifying the build passes locally. Use `build:local`, not `b
 - `src/lib/auth.ts` - NextAuth.js configuration with Google OAuth
 - `src/app/api/auth/[...nextauth]/route.ts` - NextAuth.js API routes
 - `src/app/api/sessions/route.ts` - Session creation API endpoint (POST)
-- `src/app/api/sessions/[code]/route.ts` - Session retrieval API endpoint (GET)
+- `src/app/api/sessions/[code]/route.ts` - Session retrieval (GET) and update (PATCH) API endpoints
+- `src/app/create/page.tsx` - Session creation page with form and authentication
+- `src/app/session/[code]/host/page.tsx` - Host dashboard for session management
 - `src/lib/session-utils.ts` - Session code generation and validation utilities
 - `src/types/session.ts` - TypeScript types for session entities and API responses
 - `src/middleware.ts` - Route protection middleware

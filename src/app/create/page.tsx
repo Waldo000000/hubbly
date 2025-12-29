@@ -2,10 +2,12 @@
 
 import { useSession, signIn, signOut } from "next-auth/react";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { CreateSessionResponse } from "@/types/session";
 
 export default function CreateSessionPage() {
   const { data: session, status } = useSession();
+  const router = useRouter();
 
   // Form state
   const [title, setTitle] = useState("");
@@ -244,6 +246,22 @@ export default function CreateSessionPage() {
             flexDirection: "column",
           }}
         >
+          <button
+            onClick={() => router.push(`/session/${createdSession.code}/host`)}
+            style={{
+              padding: "0.75rem 2rem",
+              fontSize: "1rem",
+              backgroundColor: "#059669",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer",
+              fontWeight: "bold",
+            }}
+          >
+            Go to Host Dashboard
+          </button>
+
           <button
             onClick={() => setCreatedSession(null)}
             style={{

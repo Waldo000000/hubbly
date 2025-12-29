@@ -57,12 +57,5 @@ CREATE UNIQUE INDEX "verification_tokens_identifier_token_key" ON "public"."veri
 -- AddForeignKey
 ALTER TABLE "public"."accounts" ADD CONSTRAINT "accounts_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
--- NOTE: qa_sessions already has foreign key constraint from when it was renamed from sessions
--- NOTE: questions table already has foreign key constraint, just need to update it for the renamed table
-
--- Drop old foreign key constraint and recreate with new table name
-ALTER TABLE "public"."questions" DROP CONSTRAINT "questions_session_id_fkey";
-ALTER TABLE "public"."questions" ADD CONSTRAINT "questions_session_id_fkey" FOREIGN KEY ("session_id") REFERENCES "public"."qa_sessions"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
 -- AddForeignKey
 ALTER TABLE "public"."sessions" ADD CONSTRAINT "sessions_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

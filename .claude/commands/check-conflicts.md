@@ -1,9 +1,11 @@
 # Check Conflicts Command
 
 ## Description
-Analyzes projectmanagement/* files and CLAUDE.md for conflicting information that could confuse an LLM. Reviews technical specifications, product requirements, and setup instructions for inconsistencies.
+
+Analyzes projectmanagement/\* files and CLAUDE.md for conflicting information that could confuse an LLM. Reviews technical specifications, product requirements, and setup instructions for inconsistencies.
 
 ## Usage
+
 ```
 /check-conflicts
 ```
@@ -13,9 +15,7 @@ Analyzes projectmanagement/* files and CLAUDE.md for conflicting information tha
 This command will:
 
 1. **Read all project documentation files**:
-   - `projectmanagement/PRODUCT_SPEC.md`
-   - `projectmanagement/TECHNICAL_SPEC.md` 
-   - `projectmanagement/feature_*.md`
+   - `projectmanagement/*.md`
    - `CLAUDE.md`
 
 2. **Analyze for conflicts**:
@@ -33,6 +33,7 @@ This command will:
    - Flag ambiguous requirements
 
 ## Example Output
+
 ```
 ✅ No conflicts detected in project documentation
 
@@ -42,7 +43,7 @@ OR
 1. Technology Stack Conflict:
    - TECHNICAL_SPEC.md:15 specifies "React 18+"
    - package.json shows React 17.0.2
-   
+
 2. Database Schema Conflict:
    - PRODUCT_SPEC.md mentions "user profiles"
    - schema.prisma missing Profile model
