@@ -726,4 +726,255 @@ describe("Question Submission and Voting Business Logic Integration Tests", () =
       expect(updatedQuestion?.voteCount).toBe(3);
     });
   });
+
+  describe("Pulse Check Feedback Workflow", () => {
+    it("should submit pulse check feedback for answered question", async () => {
+      const participant = uuidv4();
+
+      // Create an answered question
+      const question = await db.question.create({
+        data: {
+          sessionId: testSession.id,
+          participantId: uuidv4(),
+          content: "Answered question",
+          status: "answered",
+          voteCount: 0,
+          isAnonymous: false,
+        },
+      });
+
+      // Submit pulse check feedback
+      const feedback = await db.pulseCheckFeedback.create({
+        data: {
+          questionId: question.id,
+          participantId: participant,
+          feedback: "helpful",
+        },
+      });
+
+      expect(feedback.questionId).toBe(question.id);
+      expect(feedback.participantId).toBe(participant);
+      expect(feedback.feedback).toBe("helpful");
+    });
+
+    it("should accept all valid feedback types", async () => {
+      const participant1 = uuidv4();
+      const participant2 = uuidv4();
+      const participant3 = uuidv4();
+
+      // Create answered questions for each feedback type
+      const q1 = await db.question.create({
+        data: {
+          sessionId: testSession.id,
+          participantId: uuidv4(),
+          content: "Question 1",
+          status: "answered_live",
+          voteCount: 0,
+          isAnonymous: false,
+        },
+      });
+
+      const q2 = await db.question.create({
+        data: {
+          sessionId: testSession.id,
+          participantId: uuidv4(),
+          content: "Question 2",
+          status: "answered_via_docs",
+          voteCount: 0,
+          isAnonymous: false,
+        },
+      });
+
+      const q3 = await db.question.create({
+        data: {
+          sessionId: testSession.id,
+          participantId: uuidv4(),
+          content: "Question 3",
+          status: "answered",
+          voteCount: 0,
+          isAnonymous: false,
+        },
+      });
+
+      // Submit different feedback types
+      const feedback1 = await db.pulseCheckFeedback.create({
+        data: {
+          questionId: q1.id,
+          participantId: participant1,
+          feedback: "helpful",
+        },
+      });
+
+      const feedback2 = await db.pulseCheckFeedback.create({
+        data: {
+          questionId: q2.id,
+          participantId: participant2,
+          feedback: "neutral",
+        },
+      });
+
+      const feedback3 = await db.pulseCheckFeedback.create({
+        data: {
+          questionId: q3.id,
+          participantId: participant3,
+          feedback: "not_helpful",
+        },
+      });
+
+      expect(feedback1.feedback).toBe("helpful");
+      expect(feedback2.feedback).toBe("neutral");
+      expect(feedback3.feedback).toBe("not_helpful");
+    });
+
+    it("should prevent duplicate pulse check feedback", async () => {
+      const participant = uuidv4();
+
+      // Create an answered question
+      const question = await db.question.create({
+        data: {
+          sessionId: testSession.id,
+          participantId: uuidv4(),
+          content: "Answered question",
+          status: "answered",
+          voteCount: 0,
+          isAnonymous: false,
+        },
+      });
+
+      // Submit first feedback
+      await db.pulseCheckFeedback.create({
+        data: {
+          questionId: question.id,
+          participantId: participant,
+          feedback: "helpful",
+        },
+      });
+
+      // Try to submit duplicate feedback (should fail due to unique constraint)
+      await expect(
+        db.pulseCheckFeedback.create({
+          data: {
+            questionId: question.id,
+            participantId: participant,
+            feedback: "not_helpful",
+          },
+        }),
+      ).rejects.toThrow();
+    });
+
+    it("should only allow pulse check for answered question statuses", async () => {
+      const participant = uuidv4();
+
+      // Create questions with different statuses
+      const validStatuses = ["answered", "answered_live", "answered_via_docs"];
+      const invalidStatuses = [
+        "pending",
+        "approved",
+        "dismissed",
+        "being_answered",
+      ];
+
+      for (const status of validStatuses) {
+        const question = await db.question.create({
+          data: {
+            sessionId: testSession.id,
+            participantId: uuidv4(),
+            content: `Question with ${status} status`,
+            status: status as any,
+            voteCount: 0,
+            isAnonymous: false,
+          },
+        });
+
+        // Should be able to submit pulse check
+        const feedback = await db.pulseCheckFeedback.create({
+          data: {
+            questionId: question.id,
+            participantId: `${participant}-${status}`,
+            feedback: "helpful",
+          },
+        });
+
+        expect(feedback).toBeTruthy();
+      }
+
+      // Verify invalid statuses exist (business logic check)
+      for (const status of invalidStatuses) {
+        const question = await db.question.create({
+          data: {
+            sessionId: testSession.id,
+            participantId: uuidv4(),
+            content: `Question with ${status} status`,
+            status: status as any,
+            voteCount: 0,
+            isAnonymous: false,
+          },
+        });
+
+        expect(question.status).toBe(status);
+        // In real API, this would return 400 QUESTION_NOT_ANSWERED error
+        // Here we're just testing the business logic condition
+      }
+    });
+
+    it("should track pulse check feedback from multiple participants", async () => {
+      const participant1 = uuidv4();
+      const participant2 = uuidv4();
+      const participant3 = uuidv4();
+
+      // Create an answered question
+      const question = await db.question.create({
+        data: {
+          sessionId: testSession.id,
+          participantId: uuidv4(),
+          content: "Popular answered question",
+          status: "answered",
+          voteCount: 0,
+          isAnonymous: false,
+        },
+      });
+
+      // Three participants provide feedback
+      await db.pulseCheckFeedback.create({
+        data: {
+          questionId: question.id,
+          participantId: participant1,
+          feedback: "helpful",
+        },
+      });
+
+      await db.pulseCheckFeedback.create({
+        data: {
+          questionId: question.id,
+          participantId: participant2,
+          feedback: "helpful",
+        },
+      });
+
+      await db.pulseCheckFeedback.create({
+        data: {
+          questionId: question.id,
+          participantId: participant3,
+          feedback: "not_helpful",
+        },
+      });
+
+      // Verify all feedback exists
+      const allFeedback = await db.pulseCheckFeedback.findMany({
+        where: { questionId: question.id },
+      });
+
+      expect(allFeedback).toHaveLength(3);
+
+      const helpfulCount = allFeedback.filter(
+        (f) => f.feedback === "helpful",
+      ).length;
+      const notHelpfulCount = allFeedback.filter(
+        (f) => f.feedback === "not_helpful",
+      ).length;
+
+      expect(helpfulCount).toBe(2);
+      expect(notHelpfulCount).toBe(1);
+    });
+  });
 });

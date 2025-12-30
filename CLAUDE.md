@@ -167,6 +167,7 @@ Participants are identified by client-generated UUIDs:
 ### Question Management & Audience Participation
 - `src/app/api/sessions/[code]/questions/route.ts` - Question submission (POST) and retrieval (GET) API endpoints
 - `src/app/api/questions/[id]/vote/route.ts` - Voting endpoints (POST to vote, DELETE to unvote)
+- `src/app/api/questions/[id]/pulse/route.ts` - Pulse check feedback endpoint (POST)
 - `src/lib/question-utils.ts` - Question validation and business logic
 - `src/lib/participant-id.ts` - Participant UUID generation and validation
 - `src/lib/rate-limit.ts` - In-memory rate limiting for API endpoints

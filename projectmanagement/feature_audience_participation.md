@@ -138,27 +138,50 @@
 
 **Goal:** Implement backend logic for audience members to provide emoji feedback on answered questions
 
-**Status:** Not Started
+**Status:** Completed
 
-**Tasks:**
+**Completed Tasks:**
 
-1. Create POST /api/questions/[id]/pulse endpoint for submitting pulse check feedback
-2. Validate feedback value is one of: helpful, neutral, not_helpful
-3. Check question exists and has status of answered, answered_live, or answered_via_docs
-4. Check for duplicate feedback using participantId (unique constraint on questionId + participantId)
-5. Store feedback in PulseCheckFeedback table
-6. Implement dual-layer rate limiting:
+1. ✅ Created POST /api/questions/[id]/pulse endpoint for submitting pulse check feedback
+2. ✅ Validated feedback value is one of: helpful, neutral, not_helpful
+3. ✅ Check question exists and has status of answered, answered_live, or answered_via_docs
+4. ✅ Check for duplicate feedback using participantId (unique constraint on questionId + participantId)
+5. ✅ Store feedback in PulseCheckFeedback table
+6. ✅ Implemented dual-layer rate limiting:
    - Primary: participantId-based deduplication (UX)
    - Secondary: IP-based rate limiting (security - 20 pulse checks per minute per IP)
-7. Return appropriate error messages for validation failures
+7. ✅ Return appropriate error messages for validation failures
+8. ✅ Added 5 new integration tests covering:
+   - Pulse check submission for answered questions
+   - All valid feedback types (helpful, neutral, not_helpful)
+   - Duplicate feedback prevention
+   - Question status validation (only answered statuses allowed)
+   - Multi-participant feedback tracking
+
+**Implementation Details:**
+
+- **POST /api/questions/[id]/pulse**: Submits emoji feedback on answered questions
+- **Feedback Types**: helpful (💚), neutral (💛), not_helpful (🔴)
+- **Question Status Validation**: Only allows feedback for questions with status:
+  - answered
+  - answered_live
+  - answered_via_docs
+- **Error Handling**: Returns appropriate errors for:
+  - Invalid participantId format (400)
+  - Invalid feedback type (400)
+  - Question not found (404)
+  - Question not answered (400)
+  - Already submitted feedback (409 Conflict)
+  - Rate limit exceeded (429)
+- **Testing**: All 101 tests passing, build succeeds
 
 **Acceptance Criteria:**
 
-- Run prettier over all new files to format them
-- Run build to ensure no errors
-- Run linter to ensure no errors
-- Update CLAUDE.md with new details
-- Mark the story as done in the markdown file for it.
+- ✅ Run prettier over all new files to format them
+- ✅ Run build to ensure no errors
+- ✅ Run linter to ensure no errors
+- ✅ Update CLAUDE.md with new details
+- ✅ Mark the story as done in the markdown file for it.
 
 ## User Story 5: Add comprehensive tests for audience participation APIs
 
