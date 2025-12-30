@@ -81,6 +81,23 @@ chore: upgrade Next.js to 15.5.9
 - `npx prisma migrate dev` - Run database migrations in development
 - `npx prisma studio` - Open Prisma Studio (database GUI)
 
+### Database Schema
+
+**Question Status Values:**
+- `pending` - Question submitted, awaiting host approval
+- `approved` - Question approved and visible to participants
+- `dismissed` - Question dismissed by host (not visible)
+- `answered` - Question marked as answered (generic)
+- `being_answered` - Question currently being addressed
+- `answered_live` - Question answered during live session
+- `answered_via_docs` - Question answered in documentation
+
+**Pulse Check Feedback:**
+- Model: `PulseCheckFeedback` - Stores emoji feedback on answered questions
+- Feedback types: `helpful` (💚), `neutral` (💛), `not_helpful` (🔴)
+- Unique constraint on `[questionId, participantIp]` prevents duplicate feedback per question
+- Automatically deleted when question is deleted (cascade)
+
 ## Testing Setup
 
 - **Test Framework**: Jest with React Testing Library

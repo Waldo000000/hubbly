@@ -42,17 +42,18 @@ model QaSession {
 }
 
 model Question {
-  id          String         @id @default(cuid())
-  sessionId   String         @map("session_id")
-  authorName  String?        @map("author_name")
-  content     String
-  voteCount   Int            @default(0) @map("vote_count")
-  status      QuestionStatus @default(pending)
-  isAnonymous Boolean        @default(true) @map("is_anonymous")
-  createdAt   DateTime       @default(now()) @map("created_at")
-  updatedAt   DateTime       @updatedAt @map("updated_at")
-  qaSession   QaSession      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  votes       Vote[]
+  id                 String               @id @default(cuid())
+  sessionId          String               @map("session_id")
+  authorName         String?              @map("author_name")
+  content            String
+  voteCount          Int                  @default(0) @map("vote_count")
+  status             QuestionStatus       @default(pending)
+  isAnonymous        Boolean              @default(true) @map("is_anonymous")
+  createdAt          DateTime             @default(now()) @map("created_at")
+  updatedAt          DateTime             @updatedAt @map("updated_at")
+  qaSession          QaSession            @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  votes              Vote[]
+  pulseCheckFeedback PulseCheckFeedback[]
 
   @@map("questions")
 }
@@ -66,6 +67,18 @@ model Vote {
 
   @@unique([questionId, voterIp])
   @@map("votes")
+}
+
+model PulseCheckFeedback {
+  id            String                 @id @default(cuid())
+  questionId    String                 @map("question_id")
+  feedback      PulseCheckFeedbackType
+  participantIp String                 @map("participant_ip")
+  createdAt     DateTime               @default(now()) @map("created_at")
+  question      Question               @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([questionId, participantIp])
+  @@map("pulse_check_feedback")
 }
 
 model Account {
@@ -111,4 +124,13 @@ enum QuestionStatus {
   approved
   dismissed
   answered
+  being_answered
+  answered_live
+  answered_via_docs
+}
+
+enum PulseCheckFeedbackType {
+  helpful
+  neutral
+  not_helpful
 }

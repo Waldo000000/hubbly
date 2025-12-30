@@ -4,23 +4,31 @@
 
 **Goal:** Add pulse check feedback model and update question status enum to support audience participation features
 
-**Status:** Not Started
+**Status:** Completed
 
-**Tasks:**
+**Completed Tasks:**
 
-1. Update QuestionStatus enum to include: being_answered, answered_live, answered_via_docs (in addition to existing pending, approved, dismissed, answered)
-2. Create PulseCheckFeedback model with fields: id, questionId, feedback (enum: helpful/neutral/not_helpful), participantIp, createdAt
-3. Add unique constraint on [questionId, participantIp] to prevent duplicate pulse check submissions
-4. Create and run database migration
-5. Generate Prisma client
+1. ✅ Updated QuestionStatus enum to include: being_answered, answered_live, answered_via_docs (in addition to existing pending, approved, dismissed, answered)
+2. ✅ Created PulseCheckFeedback model with fields: id, questionId, feedback (enum: helpful/neutral/not_helpful), participantIp, createdAt
+3. ✅ Added unique constraint on [questionId, participantIp] to prevent duplicate pulse check submissions
+4. ✅ Created and ran database migration (20251230011847_add_pulse_check_and_question_status)
+5. ✅ Generated Prisma client for both production and test schemas
+
+**Implementation Details:**
+
+- Updated both `prisma/schema.prisma` and `prisma/schema.test.prisma` with identical changes
+- Created new `PulseCheckFeedbackType` enum with values: helpful, neutral, not_helpful
+- Added `pulseCheckFeedback` relation to Question model
+- Database migration successfully applied to PostgreSQL production database
+- All 74 existing tests still passing
 
 **Acceptance Criteria:**
 
-- Run prettier over all new files to format them
-- Run build to ensure no errors
-- Run linter to ensure no errors
-- Update CLAUDE.md with new details
-- Mark the story as done in the markdown file for it.
+- ✅ Run prettier over all new files to format them
+- ✅ Run build to ensure no errors
+- ✅ Run linter to ensure no errors
+- ✅ Update CLAUDE.md with new details
+- ✅ Mark the story as done in the markdown file for it.
 
 ## User Story 2: Create API types and question submission endpoint
 
