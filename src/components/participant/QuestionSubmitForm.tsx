@@ -79,16 +79,14 @@ export default function QuestionSubmitForm({
       }
 
       // Success
-      setSuccessMessage(
-        "Question submitted successfully! Waiting for host approval.",
-      );
+      setSuccessMessage("Question submitted successfully!");
       setContent("");
       setIsAnonymous(false);
 
-      // Clear success message after 5 seconds
+      // Clear success message after 3 seconds
       setTimeout(() => {
         setSuccessMessage("");
-      }, 5000);
+      }, 3000);
     } catch {
       setErrorMessage(
         "Network error. Please check your connection and try again.",
