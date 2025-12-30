@@ -19,9 +19,12 @@ if (process.env.ENABLE_SEQ_LOGGING === "true") {
     serverUrl: SEQ_SERVER_URL,
     apiKey: SEQ_API_KEY,
     onError: (e) => {
+      // Can't use logger here (circular), use console as last resort
+      // eslint-disable-next-line no-console
       console.error("Seq logging error:", e);
     },
   });
+  // eslint-disable-next-line no-console
   console.log(`✅ Seq logging enabled: ${SEQ_SERVER_URL}`);
 }
 
@@ -34,8 +37,7 @@ class Logger {
    * Log informational message
    */
   info(message: string, context?: LogContext) {
-    console.log(`[INFO] ${message}`, context || "");
-
+    // Always log to Seq first (if enabled)
     if (seqLogger) {
       seqLogger.emit({
         timestamp: new Date(),
@@ -44,14 +46,17 @@ class Logger {
         properties: context,
       });
     }
+
+    // Also log to console for convenience
+    // eslint-disable-next-line no-console
+    console.log(`[INFO] ${message}`, context || "");
   }
 
   /**
    * Log warning message
    */
   warn(message: string, context?: LogContext) {
-    console.warn(`[WARN] ${message}`, context || "");
-
+    // Always log to Seq first (if enabled)
     if (seqLogger) {
       seqLogger.emit({
         timestamp: new Date(),
@@ -60,14 +65,17 @@ class Logger {
         properties: context,
       });
     }
+
+    // Also log to console for convenience
+    // eslint-disable-next-line no-console
+    console.warn(`[WARN] ${message}`, context || "");
   }
 
   /**
    * Log error message
    */
   error(message: string, error?: Error | unknown, context?: LogContext) {
-    console.error(`[ERROR] ${message}`, error, context || "");
-
+    // Always log to Seq first (if enabled)
     if (seqLogger) {
       seqLogger.emit({
         timestamp: new Date(),
@@ -87,6 +95,10 @@ class Logger {
         exception: error instanceof Error ? error.message : undefined,
       });
     }
+
+    // Also log to console for convenience
+    // eslint-disable-next-line no-console
+    console.error(`[ERROR] ${message}`, error, context || "");
   }
 
   /**
@@ -94,8 +106,7 @@ class Logger {
    */
   debug(message: string, context?: LogContext) {
     if (process.env.NODE_ENV === "development") {
-      console.debug(`[DEBUG] ${message}`, context || "");
-
+      // Always log to Seq first (if enabled)
       if (seqLogger) {
         seqLogger.emit({
           timestamp: new Date(),
@@ -104,6 +115,10 @@ class Logger {
           properties: context,
         });
       }
+
+      // Also log to console for convenience
+      // eslint-disable-next-line no-console
+      console.debug(`[DEBUG] ${message}`, context || "");
     }
   }
 
