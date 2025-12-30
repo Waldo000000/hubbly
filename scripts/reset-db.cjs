@@ -28,15 +28,22 @@ async function resetDatabase() {
 
   log(`Environment: VERCEL_ENV=${vercelEnv}, NODE_ENV=${nodeEnv}`)
 
-  // Check if we have a DATABASE_URL
-  if (!process.env.DATABASE_URL) {
-    log('Skipping database operations - no DATABASE_URL found')
+  // Coalesce DATABASE_URL from various sources (matches db.ts pattern)
+  const databaseUrl = process.env.POSTGRES_PRISMA_URL ||
+                      process.env.POSTGRES_URL ||
+                      process.env.DATABASE_URL
+
+  // Check if we have a database URL from any source
+  if (!databaseUrl) {
+    log('Skipping database operations - no database URL found (checked POSTGRES_PRISMA_URL, POSTGRES_URL, DATABASE_URL)')
     return
   }
 
-  // Check if DATABASE_URL points to localhost (development)
-  const isLocalDB = process.env.DATABASE_URL.includes('localhost') ||
-                   process.env.DATABASE_URL.includes('127.0.0.1')
+  log(`Using database URL from: ${process.env.POSTGRES_PRISMA_URL ? 'POSTGRES_PRISMA_URL' : process.env.POSTGRES_URL ? 'POSTGRES_URL' : 'DATABASE_URL'}`)
+
+  // Check if database URL points to localhost (development)
+  const isLocalDB = databaseUrl.includes('localhost') ||
+                   databaseUrl.includes('127.0.0.1')
 
   if (isLocalDB && nodeEnv === 'development') {
     log('Skipping database operations - detected local development database')
