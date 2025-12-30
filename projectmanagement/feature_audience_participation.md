@@ -229,27 +229,48 @@
 
 **Goal:** Build the main participant page where audience members join and view sessions
 
-**Status:** Not Started
+**Status:** Completed
 
-**Tasks:**
+**Completed Tasks:**
 
-1. Create src/app/session/[code]/page.tsx as a public page (no authentication required)
-2. Fetch and validate session by code on page load
-3. Display session information (title, description, status)
-4. Create name entry flow: prompt for name or "Join Anonymously" option
-5. Store participant name choice in localStorage for session persistence
-6. Handle error cases: invalid code, expired session, inactive session
-7. Add mobile-optimized layout with large touch targets
-8. Display appropriate messages when session is not accepting questions
-9. Add loading states during session fetch
+1. ✅ Created `src/app/session/[code]/page.tsx` as a public page (no authentication required)
+2. ✅ Fetch and validate session by code on page load
+3. ✅ Display session information (title, description, status badges)
+4. ✅ Created name entry flow: prompt for name or "Join Anonymously" option
+5. ✅ Store participant name choice in localStorage as `participant_name_{code}`
+6. ✅ Handle error cases: invalid code (404), expired session (410), network errors
+7. ✅ Mobile-optimized layout with large touch targets (min 56px buttons)
+8. ✅ Display appropriate messages when session is not accepting questions
+9. ✅ Add loading states during session fetch with spinner
+
+**Implementation Details:**
+
+- **Public Page**: No authentication required, uses client-side participant ID
+- **Name Entry Flow**:
+  - Shows name input on first visit
+  - "Join with Name" button (disabled if empty)
+  - "Join Anonymously" button (always available)
+  - Name stored in localStorage per session
+- **Session Status Display**:
+  - Active/Inactive badge
+  - Accepting Questions/Not Accepting Questions badge
+  - Info cards for inactive session or paused questions
+- **Participant Info**: Shows participant's name and anonymity status
+- **Mobile Optimization**:
+  - Responsive layout (max-w-4xl)
+  - Large touch targets (56px min height)
+  - Sticky header with session code
+- **Error Handling**: Custom error screen with retry button
+- **Loading State**: Centered spinner with loading message
+- **Placeholder**: "Coming soon" message for question submission UI (User Stories 7-8)
 
 **Acceptance Criteria:**
 
-- Run prettier over all new files to format them
-- Run build to ensure no errors
-- Run linter to ensure no errors
-- Update CLAUDE.md with new details
-- Mark the story as done in the markdown file for it.
+- ✅ Run prettier over all new files to format them
+- ✅ Run build to ensure no errors
+- ✅ Run linter to ensure no errors
+- ✅ Update CLAUDE.md with new details
+- ✅ Mark the story as done in the markdown file for it.
 
 ## User Story 7: Create question submission UI
 
