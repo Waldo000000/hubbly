@@ -73,6 +73,39 @@ Never push without verifying the build passes locally. Use `build:local`, not `b
 
 **If user reports .env.local issues**: Ask what values are missing, provide template, let USER restore their own credentials.
 
+## ⚠️ CRITICAL: Temporary Files
+
+### `.tmp/` Directory - Use for All Temporary Files
+
+**ABSOLUTE RULE**: All temporary files MUST be written to the `.tmp/` directory, which is gitignored.
+
+**Why**:
+- Prevents accidental commits of temporary/scratch files
+- Keeps repository clean
+- Avoids creating files like `nul`, `temp.txt`, etc. in tracked directories
+
+**Correct Approach**:
+1. ✅ Always write temp files to `.tmp/` directory: `.tmp/scratch.txt`
+2. ✅ Create `.tmp/` directory if it doesn't exist
+3. ✅ Use descriptive names: `.tmp/build-output.log`, `.tmp/test-data.json`
+4. ✅ Clean up temp files when done (optional, as `.tmp/` is gitignored)
+
+**Incorrect Approach**:
+1. ❌ NEVER write temp files to project root (e.g., `./nul`, `./temp.txt`)
+2. ❌ NEVER write temp files to tracked directories (e.g., `src/temp.js`)
+3. ❌ NEVER use ambiguous filenames that might conflict with real files
+
+**Examples**:
+```bash
+# Good
+mkdir -p .tmp
+echo "test" > .tmp/output.log
+
+# Bad
+echo "test" > nul
+echo "test" > temp.txt
+```
+
 ## Git Workflow
 
 ### Conventional Commits
