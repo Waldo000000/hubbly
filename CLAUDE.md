@@ -95,8 +95,31 @@ chore: upgrade Next.js to 15.5.9
 **Pulse Check Feedback:**
 - Model: `PulseCheckFeedback` - Stores emoji feedback on answered questions
 - Feedback types: `helpful` (💚), `neutral` (💛), `not_helpful` (🔴)
-- Unique constraint on `[questionId, participantIp]` prevents duplicate feedback per question
+- Unique constraint on `[questionId, participantId]` prevents duplicate feedback per question
 - Automatically deleted when question is deleted (cascade)
+
+### Participant Identity Model
+
+Participants are identified by client-generated UUIDs:
+- **Generated**: Browser creates UUID v4 on first session join
+- **Storage**: localStorage as `participant_{sessionCode}`
+- **Persistence**: Survives page refreshes in same browser/device
+- **Scope**: Different devices/browsers = different participants
+- **Privacy**: Incognito mode = new participant
+
+**Rationale**: Solves corporate proxy/NAT issues (multiple people behind same IP) while maintaining zero-friction UX.
+
+**Implementation**:
+- `src/lib/participant-id.ts` - Utility functions for participant ID management
+- `src/types/participant.ts` - TypeScript types for participant identity
+- Database fields: `participantId` (String) in Question, Vote, PulseCheckFeedback models
+
+**Rate Limiting Strategy**:
+- **Primary deduplication**: participantId (user experience - prevents duplicate votes/feedback)
+- **Secondary rate limiting**: IP address (security - prevents abuse/spam)
+- Dual-layer approach handles both good faith participants AND potential bad actors
+
+**Privacy**: No server-side participant tracking, no registration required, truly anonymous.
 
 ## Testing Setup
 

@@ -34,17 +34,42 @@
 
 **Goal:** Implement backend logic for audience members to submit questions to sessions
 
-**Status:** Not Started
+**Status:** In Progress (Database Migration & Types Complete)
 
-**Tasks:**
+**Completed Tasks:**
 
-1. Define TypeScript types in src/types/question.ts for Question, QuestionSubmission, QuestionWithVotes, Vote, and PulseCheck entities
-2. Create POST /api/sessions/[code]/questions endpoint for question submission
-3. Add validation for question content (not empty, character limit of 500 characters)
-4. Check session exists, is active, and is accepting questions before allowing submission
-5. Create question with pending status by default
-6. Add IP-based rate limiting (5 questions per 5 minutes per IP)
-7. Return appropriate error messages for validation failures and rate limiting
+1. ✅ Migrated database schema from IP-based to participantId-based identification
+   - Renamed `voterIp` → `participantId` in Vote model
+   - Renamed `participantIp` → `participantId` in PulseCheckFeedback model
+   - Added optional `participantId` field to Question model
+   - Created migration: `20251230114206_migrate_ip_to_participant_id`
+2. ✅ Created `src/lib/participant-id.ts` utility for client-side UUID management
+3. ✅ Created `src/types/participant.ts` with participant identity types
+4. ✅ Defined comprehensive TypeScript types in `src/types/question.ts`:
+   - Request types: SubmitQuestionRequest, VoteRequest, PulseCheckRequest
+   - Response types: QuestionResponse, SubmitQuestionResponse, etc.
+   - Client state types: QuestionWithClientState, VoteState, PulseCheckState
+   - Validation types and constants
+5. ✅ Updated CLAUDE.md with participant identity model documentation
+
+**Pending Tasks:**
+
+1. Create POST /api/sessions/[code]/questions endpoint for question submission
+2. Add validation for question content (not empty, character limit of 500 characters)
+3. Check session exists, is active, and is accepting questions before allowing submission
+4. Create question with pending status by default
+5. Implement dual-layer rate limiting:
+   - Primary: participantId-based deduplication (UX)
+   - Secondary: IP-based rate limiting (security - 5 questions per 5 minutes per IP)
+6. Return appropriate error messages for validation failures and rate limiting
+
+**Implementation Notes:**
+
+- **Participant Identity**: Using client-generated UUIDs instead of IP addresses
+  - Solves corporate proxy/NAT issues (multiple people behind same IP)
+  - Better UX: participants can reliably see their own submissions
+  - Stored in localStorage as `participant_{sessionCode}`
+- **Rate Limiting**: Dual-layer approach (participantId for UX + IP for security)
 
 **Acceptance Criteria:**
 
@@ -64,13 +89,15 @@
 
 1. Create GET /api/sessions/[code]/questions endpoint that returns only approved questions
 2. Sort questions by vote count (descending) and creation date
-3. Include vote count and question status in response
+3. Include vote count, question status, and participantId in response
 4. Create POST /api/questions/[id]/vote endpoint for upvoting questions
-5. Check for duplicate votes using IP address (unique constraint on questionId + voterIp)
+5. Check for duplicate votes using participantId (unique constraint on questionId + participantId)
 6. Increment vote count on question when vote is added
 7. Create DELETE /api/questions/[id]/vote endpoint for removing votes
 8. Decrement vote count on question when vote is removed
-9. Add IP-based rate limiting for votes (30 votes per minute per IP)
+9. Implement dual-layer rate limiting for votes:
+   - Primary: participantId-based deduplication (UX)
+   - Secondary: IP-based rate limiting (security - 30 votes per minute per IP)
 
 **Acceptance Criteria:**
 
@@ -91,9 +118,11 @@
 1. Create POST /api/questions/[id]/pulse endpoint for submitting pulse check feedback
 2. Validate feedback value is one of: helpful, neutral, not_helpful
 3. Check question exists and has status of answered, answered_live, or answered_via_docs
-4. Check for duplicate feedback using IP address (unique constraint on questionId + participantIp)
+4. Check for duplicate feedback using participantId (unique constraint on questionId + participantId)
 5. Store feedback in PulseCheckFeedback table
-6. Add IP-based rate limiting (20 pulse checks per minute per IP)
+6. Implement dual-layer rate limiting:
+   - Primary: participantId-based deduplication (UX)
+   - Secondary: IP-based rate limiting (security - 20 pulse checks per minute per IP)
 7. Return appropriate error messages for validation failures
 
 **Acceptance Criteria:**
