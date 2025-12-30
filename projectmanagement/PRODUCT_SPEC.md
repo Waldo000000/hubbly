@@ -62,13 +62,10 @@ A real-time audience engagement platform focused on Q&A functionality. Similar t
 **User Experience**:
 - View all submitted questions in real-time
 - See vote counts for each question
-- Mark questions as “Being answered,” “Answered Live,” or “Answered via Docs.” to track progress
-- Flag inappropriate or duplicate content
-- “Pin” important questions for easy viewing
-- Questions automatically sorted by vote count
+- Mark questions as “Being answered,” or “Answered”, so participants can see what's currently being answered, and leave their pulse check feedback on Answered questions
+- Questions for hosts automatically sorted by vote count
 
 **Key Benefits**:
-- Quality control through moderation
 - Focus on most popular questions
 - Clear tracking of what's been addressed
 
