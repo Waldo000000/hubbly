@@ -34,7 +34,7 @@
 
 **Goal:** Implement backend logic for audience members to submit questions to sessions
 
-**Status:** In Progress (Database Migration & Types Complete)
+**Status:** Completed
 
 **Completed Tasks:**
 
@@ -50,18 +50,23 @@
    - Response types: QuestionResponse, SubmitQuestionResponse, etc.
    - Client state types: QuestionWithClientState, VoteState, PulseCheckState
    - Validation types and constants
-5. ✅ Updated CLAUDE.md with participant identity model documentation
-
-**Pending Tasks:**
-
-1. Create POST /api/sessions/[code]/questions endpoint for question submission
-2. Add validation for question content (not empty, character limit of 500 characters)
-3. Check session exists, is active, and is accepting questions before allowing submission
-4. Create question with pending status by default
-5. Implement dual-layer rate limiting:
-   - Primary: participantId-based deduplication (UX)
+5. ✅ Created POST /api/sessions/[code]/questions endpoint for question submission
+6. ✅ Added validation for question content (3-500 characters, authorName max 100 chars)
+   - Implemented in `src/lib/question-utils.ts`
+7. ✅ Verified session exists, is active, and accepting questions before allowing submission
+8. ✅ Created questions with pending status by default
+9. ✅ Implemented dual-layer rate limiting:
+   - Primary: participantId validation and deduplication (UX)
    - Secondary: IP-based rate limiting (security - 5 questions per 5 minutes per IP)
-6. Return appropriate error messages for validation failures and rate limiting
+   - Rate limiting utilities in `src/lib/rate-limit.ts`
+   - IP extraction utilities in `src/lib/request-utils.ts`
+10. ✅ Return appropriate error messages for validation failures and rate limiting
+11. ✅ Created comprehensive integration tests in `__tests__/integration/question-submission.test.ts`
+    - 16 tests covering validation, session checks, participant tracking, etc.
+12. ✅ Updated CLAUDE.md with:
+    - Participant identity model documentation
+    - New file references and organization
+    - Question management section
 
 **Implementation Notes:**
 
@@ -70,14 +75,17 @@
   - Better UX: participants can reliably see their own submissions
   - Stored in localStorage as `participant_{sessionCode}`
 - **Rate Limiting**: Dual-layer approach (participantId for UX + IP for security)
+  - In-memory rate limiting with automatic cleanup
+  - Standard rate limit headers in API responses
+- **Testing**: All 90 tests passing, build succeeds
 
 **Acceptance Criteria:**
 
-- Run prettier over all new files to format them
-- Run build to ensure no errors
-- Run linter to ensure no errors
-- Update CLAUDE.md with new details
-- Mark the story as done in the markdown file for it.
+- ✅ Run prettier over all new files to format them
+- ✅ Run build to ensure no errors
+- ✅ Run linter to ensure no errors
+- ✅ Update CLAUDE.md with new details
+- ✅ Mark the story as done in the markdown file for it.
 
 ## User Story 3: Create question retrieval and voting endpoints
 

@@ -1,7 +1,7 @@
-import { NextAuthOptions } from "next-auth"
-import GoogleProvider from "next-auth/providers/google"
-import { PrismaAdapter } from "@auth/prisma-adapter"
-import { prisma } from "./db"
+import { NextAuthOptions } from "next-auth";
+import GoogleProvider from "next-auth/providers/google";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { prisma } from "./db";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -14,18 +14,18 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     session: async ({ session, token }) => {
       if (session?.user) {
-        session.user.id = token.sub!
+        session.user.id = token.sub!;
       }
-      return session
+      return session;
     },
     jwt: async ({ user, token }) => {
       if (user) {
-        token.uid = user.id
+        token.uid = user.id;
       }
-      return token
+      return token;
     },
   },
   session: {
     strategy: "jwt",
   },
-}
+};

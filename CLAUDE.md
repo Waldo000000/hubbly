@@ -132,6 +132,7 @@ Participants are identified by client-generated UUIDs:
 ### Test Files
 
 - `__tests__/integration/sessions.test.ts` - Session business logic integration tests
+- `__tests__/integration/question-submission.test.ts` - Question submission business logic tests
 - `__tests__/utils/session-utils.test.ts` - Session utilities unit tests
 - `__tests__/integration/session-lifecycle.test.ts` - Complete session workflow tests
 - `__tests__/setup/test-db.ts` - Test database utilities
@@ -140,19 +141,38 @@ Participants are identified by client-generated UUIDs:
 
 ## Key Files
 
+### Project Management
 - `projectmanagement/PRODUCT_SPEC.md` - Product requirements and features
 - `projectmanagement/TECHNICAL_SPEC.md` - Technical architecture and implementation details
 - `projectmanagement/feature_*.md` - User stories for specific features
+
+### Database & Schema
 - `prisma/schema.prisma` - Database schema and models (includes NextAuth tables)
+- `prisma/schema.test.prisma` - Test database schema (SQLite)
+
+### Authentication & Authorization
 - `src/lib/auth.ts` - NextAuth.js configuration with Google OAuth
 - `src/app/api/auth/[...nextauth]/route.ts` - NextAuth.js API routes
+- `src/middleware.ts` - Route protection middleware
+- `src/types/next-auth.d.ts` - NextAuth TypeScript type extensions
+
+### Session Management
 - `src/app/api/sessions/route.ts` - Session creation API endpoint (POST)
 - `src/app/api/sessions/[code]/route.ts` - Session retrieval (GET) and update (PATCH) API endpoints
 - `src/app/create/page.tsx` - Session creation page with form and authentication
 - `src/app/session/[code]/host/page.tsx` - Host dashboard for session management
 - `src/lib/session-utils.ts` - Session code generation and validation utilities
 - `src/types/session.ts` - TypeScript types for session entities and API responses
-- `src/middleware.ts` - Route protection middleware
-- `src/types/next-auth.d.ts` - NextAuth TypeScript type extensions
+
+### Question Management & Audience Participation
+- `src/app/api/sessions/[code]/questions/route.ts` - Question submission API endpoint (POST)
+- `src/lib/question-utils.ts` - Question validation and business logic
+- `src/lib/participant-id.ts` - Participant UUID generation and validation
+- `src/lib/rate-limit.ts` - In-memory rate limiting for API endpoints
+- `src/lib/request-utils.ts` - Request utility functions (IP extraction)
+- `src/types/question.ts` - TypeScript types for questions, votes, and pulse checks
+- `src/types/participant.ts` - TypeScript types for participant identity
+
+### Environment
 - `.env` - Environment variables (not committed to git)
 - `.env.example` - Environment variables template
