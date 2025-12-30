@@ -26,7 +26,7 @@ Usage: `/check-conflicts`
 - **Backend**: Next.js API Routes with Prisma ORM
 - **Database**: PostgreSQL
 - **Authentication**: NextAuth.js with Google OAuth
-- **Styling**: Tailwind CSS (to be added)
+- **Styling**: Tailwind CSS v4
 
 ## Development Commands
 
