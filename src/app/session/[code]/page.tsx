@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import type { GetSessionResponse } from "@/types/session";
 import { getOrCreateParticipantId } from "@/lib/participant-id";
 import QuestionSubmitForm from "@/components/participant/QuestionSubmitForm";
+import QuestionList from "@/components/participant/QuestionList";
 
 export default function ParticipantSessionPage() {
   const params = useParams();
@@ -292,11 +293,12 @@ export default function ParticipantSessionPage() {
           isAcceptingQuestions={isAcceptingQuestions}
         />
 
-        {/* Question list and voting will be added in User Story 8 */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mt-6">
-          <p className="text-gray-500 text-center py-8">
-            Question list and voting interface coming soon...
-          </p>
+        {/* Question list with voting */}
+        <div className="mt-6">
+          <QuestionList
+            sessionCode={code}
+            participantId={participantId || ""}
+          />
         </div>
       </div>
     </div>

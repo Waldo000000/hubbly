@@ -323,28 +323,56 @@
 
 **Goal:** Build the question display and voting interface for participants to view and upvote questions
 
-**Status:** Not Started
+**Status:** Completed
 
-**Tasks:**
+**Completed Tasks:**
 
-1. Create src/components/participant/QuestionList.tsx component
-2. Display approved questions sorted by vote count (highest first)
-3. Create src/components/participant/QuestionCard.tsx component for individual questions
-4. Show question content, author name (or "Anonymous"), vote count, and status badge
-5. Create vote button component with upvote icon
-6. Add visual feedback when voting (color change, animation)
-7. Prevent duplicate votes by checking with API and tracking locally
-8. Display question status badges: "Being answered", "Answered Live", "Answered via Docs"
-9. Add auto-refresh/polling to show new questions and vote updates
-10. Mobile-optimized layout with large tap targets for vote buttons
+1. ✅ Created `src/components/participant/QuestionList.tsx` component
+2. ✅ Display approved questions sorted by vote count (highest first, from API)
+3. ✅ Created `src/components/participant/QuestionCard.tsx` component for individual questions
+4. ✅ Show question content, author name (or "Anonymous"), vote count, and status badge
+5. ✅ Created vote button with upvote icon (SVG arrow)
+6. ✅ Added visual feedback when voting (blue background when voted, gray when not)
+7. ✅ Prevent duplicate votes by tracking in localStorage (`voted_questions_{sessionCode}`)
+8. ✅ Display question status badges: "Being Answered", "Answered Live", "Answered via Docs", "Answered"
+9. ✅ Added auto-refresh polling (fetches new questions every 10 seconds)
+10. ✅ Mobile-optimized layout with large tap targets (48px vote button)
+
+**Implementation Details:**
+
+- **QuestionList Component**:
+  - Fetches from GET `/api/sessions/${sessionCode}/questions`
+  - Auto-refresh polling every 10 seconds using setInterval
+  - Tracks voted questions in localStorage per session
+  - Shows loading spinner, error state, and empty state
+  - Displays question count in header
+- **QuestionCard Component**:
+  - Props: question, participantId, isVotedByMe, onVoteChange callback
+  - Vote button toggles between POST and DELETE to `/api/questions/${questionId}/vote`
+  - Visual feedback: blue background when voted, gray when not
+  - Optimistic UI: updates vote count locally immediately
+  - Status badges with color coding:
+    - Being Answered: blue
+    - Answered Live: green
+    - Answered via Docs: purple
+    - Answered: green
+  - Shows author name or "Anonymous"
+  - Mobile-optimized: 48px vote button, responsive layout
+- **Vote State Management**:
+  - localStorage key: `voted_questions_{sessionCode}`
+  - Stores array of question IDs that participant has voted on
+  - Syncs between localStorage and component state
+  - Updates immediately on vote/unvote for instant feedback
+- **Error Handling**: Network errors logged to console, doesn't block UI
+- **Integrated into Participant Page**: Replaced placeholder below submit form
 
 **Acceptance Criteria:**
 
-- Run prettier over all new files to format them
-- Run build to ensure no errors
-- Run linter to ensure no errors
-- Update CLAUDE.md with new details
-- Mark the story as done in the markdown file for it.
+- ✅ Run prettier over all new files to format them
+- ✅ Run build to ensure no errors
+- ✅ Run linter to ensure no errors
+- ✅ Update CLAUDE.md with new details
+- ✅ Mark the story as done in the markdown file for it.
 
 ## User Story 9: Create pulse check feedback UI
 
