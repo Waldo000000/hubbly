@@ -41,6 +41,12 @@ async function resetDatabase() {
 
   log(`Using database URL from: ${process.env.POSTGRES_PRISMA_URL ? 'POSTGRES_PRISMA_URL' : process.env.POSTGRES_URL ? 'POSTGRES_URL' : 'DATABASE_URL'}`)
 
+  // Coalesce DIRECT_URL from various sources (matches build.js pattern)
+  const directUrl = process.env.POSTGRES_URL_NON_POOLING ||
+                    process.env.POSTGRES_URL ||
+                    process.env.DATABASE_URL ||
+                    process.env.DIRECT_URL
+
   // Check if database URL points to localhost (development)
   const isLocalDB = databaseUrl.includes('localhost') ||
                    databaseUrl.includes('127.0.0.1')
@@ -50,13 +56,20 @@ async function resetDatabase() {
     return
   }
 
+  // Set environment variables for Prisma (required by schema.prisma)
+  const prismaEnv = {
+    ...process.env,
+    DATABASE_URL: databaseUrl,
+    DIRECT_URL: directUrl
+  }
+
   try {
     // PRODUCTION: Only run migrations (no reset, no seed)
     if (vercelEnv === 'production') {
       log('🚀 Running migrations for production deployment...')
       execSync('npx prisma migrate deploy', {
         stdio: 'inherit',
-        env: { ...process.env }
+        env: prismaEnv
       })
       log('✅ Production migrations applied successfully!')
       return
@@ -74,14 +87,14 @@ async function resetDatabase() {
       log('Step 2/3: Deploying Prisma migrations...')
       execSync('npx prisma migrate deploy', {
         stdio: 'inherit',
-        env: { ...process.env }
+        env: prismaEnv
       })
 
       // Step 3: Seed database
       log('Step 3/3: Seeding database with test data...')
       execSync('npx prisma db seed', {
         stdio: 'inherit',
-        env: { ...process.env }
+        env: prismaEnv
       })
 
       log('✅ Database reset completed successfully!')
