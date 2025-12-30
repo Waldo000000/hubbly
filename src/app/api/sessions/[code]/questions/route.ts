@@ -116,7 +116,7 @@ export async function POST(
       );
     }
 
-    // Create question with pending status
+    // Create question with auto-approved status (moderation UI to be added later)
     const question = await prisma.question.create({
       data: {
         sessionId: session.id,
@@ -124,7 +124,7 @@ export async function POST(
         content: body.content.trim(),
         authorName: body.authorName?.trim() || null,
         isAnonymous: body.isAnonymous,
-        status: "pending",
+        status: "approved",
         voteCount: 0,
       },
     });
