@@ -24,18 +24,18 @@ export default function QuestionSubmitForm({
 
   const characterCount = content.length;
   const maxCharacters = 500;
-  const minCharacters = 3;
-  const isContentValid =
-    characterCount >= minCharacters && characterCount <= maxCharacters;
+  const isContentValid = characterCount > 0 && characterCount <= maxCharacters;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validation
     if (!isContentValid) {
-      setErrorMessage(
-        `Question must be between ${minCharacters} and ${maxCharacters} characters.`,
-      );
+      if (characterCount === 0) {
+        setErrorMessage("Question content is required.");
+      } else {
+        setErrorMessage(`Question cannot exceed ${maxCharacters} characters.`);
+      }
       return;
     }
 
@@ -133,16 +133,10 @@ export default function QuestionSubmitForm({
           <div className="flex justify-between items-center mt-1">
             <span
               className={`text-sm ${
-                characterCount < minCharacters
-                  ? "text-gray-400"
-                  : characterCount > maxCharacters
-                    ? "text-red-600"
-                    : "text-gray-600"
+                characterCount > maxCharacters ? "text-red-600" : "text-gray-600"
               }`}
             >
-              {characterCount < minCharacters
-                ? `${minCharacters - characterCount} more characters needed`
-                : `${characterCount} / ${maxCharacters} characters`}
+              {characterCount} / {maxCharacters} characters
             </span>
           </div>
         </div>
