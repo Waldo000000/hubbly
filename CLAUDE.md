@@ -92,7 +92,7 @@ Seq is a structured logging tool for local development debugging. It provides a 
 **Setup (Docker):**
 
 ```bash
-docker run --name seq -d --restart unless-stopped -e ACCEPT_EULA=Y -p 5341:80 datalust/seq:latest
+docker run --name seq -d --restart unless-stopped -e ACCEPT_EULA=Y -e SEQ_FIRSTRUN_NOAUTHENTICATION=True -p 5341:80 datalust/seq:latest
 ```
 
 **Access Seq UI:** http://localhost:5341

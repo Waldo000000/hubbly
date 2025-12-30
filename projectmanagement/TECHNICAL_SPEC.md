@@ -274,7 +274,7 @@ See `CLAUDE.md` for detailed examples and guidelines.
 
 ```bash
 # 1. Start Seq with Docker
-docker run --name seq -d --restart unless-stopped -e ACCEPT_EULA=Y -p 5341:80 datalust/seq:latest
+docker run --name seq -d --restart unless-stopped -e ACCEPT_EULA=Y -e SEQ_FIRSTRUN_NOAUTHENTICATION=True -p 5341:80 datalust/seq:latest
 
 # 2. Enable in .env.local
 ENABLE_SEQ_LOGGING="true"
