@@ -104,7 +104,7 @@ export default function QuestionCard({
 
   return (
     <div className="w-full bg-white rounded-lg shadow-md border-2 border-gray-200 p-5 hover:shadow-lg transition-shadow">
-      <div className="flex flex-row gap-4 items-start">
+      <div className="flex flex-row gap-4 items-start" style={{ display: 'flex' }}>
         {/* Vote button - left side */}
         <div className="flex flex-col items-center gap-1 flex-shrink-0">
           <button
