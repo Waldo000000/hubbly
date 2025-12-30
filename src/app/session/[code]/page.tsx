@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import type { GetSessionResponse } from "@/types/session";
 import { getOrCreateParticipantId } from "@/lib/participant-id";
+import QuestionSubmitForm from "@/components/participant/QuestionSubmitForm";
 
 export default function ParticipantSessionPage() {
   const params = useParams();
@@ -283,10 +284,18 @@ export default function ParticipantSessionPage() {
           </p>
         </div>
 
-        {/* Question submission and list will be added in User Stories 7-8 */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        {/* Question submission form */}
+        <QuestionSubmitForm
+          sessionCode={code}
+          participantId={participantId || ""}
+          participantName={participantName}
+          isAcceptingQuestions={isAcceptingQuestions}
+        />
+
+        {/* Question list and voting will be added in User Story 8 */}
+        <div className="bg-white rounded-lg shadow-sm p-6 mt-6">
           <p className="text-gray-500 text-center py-8">
-            Question submission and voting interface coming soon...
+            Question list and voting interface coming soon...
           </p>
         </div>
       </div>

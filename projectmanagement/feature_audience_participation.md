@@ -276,27 +276,48 @@
 
 **Goal:** Build the question submission form for audience members to ask questions
 
-**Status:** Not Started
+**Status:** Completed
 
-**Tasks:**
+**Completed Tasks:**
 
-1. Create src/components/participant/QuestionSubmitForm.tsx component
-2. Add textarea input with character counter (max 500 characters)
-3. Add toggle or checkbox for "Submit anonymously" vs using entered name
-4. Add submit button with loading state during submission
-5. Display success message after successful submission
-6. Display error messages for validation failures and rate limiting
-7. Clear form after successful submission
-8. Disable form when session is not accepting questions
-9. Add mobile-optimized styling with large buttons and inputs
+1. ✅ Created `src/components/participant/QuestionSubmitForm.tsx` component
+2. ✅ Added textarea input with character counter (3-500 characters)
+3. ✅ Added checkbox for "Submit anonymously" to hide name
+4. ✅ Added submit button with loading state (spinner + "Submitting..." text)
+5. ✅ Display success message after successful submission (auto-clears after 5 seconds)
+6. ✅ Display error messages for validation failures and rate limiting
+7. ✅ Clear form after successful submission
+8. ✅ Disable form when session is not accepting questions
+9. ✅ Mobile-optimized styling with large buttons (min 56px) and inputs
+
+**Implementation Details:**
+
+- **Component Props**: sessionCode, participantId, participantName, isAcceptingQuestions
+- **Character Counter**: Dynamic display showing "X more characters needed" (< 3) or "X / 500 characters" (≥ 3)
+- **Anonymous Checkbox**: Shows "(hide my name)" hint if participant has a name
+- **Validation**:
+  - Client-side validation for 3-500 character range
+  - Disables submit button when content invalid or not accepting questions
+- **API Integration**: POSTs to `/api/sessions/${sessionCode}/questions`
+- **Error Handling**:
+  - 429 (rate limit): "Too many questions. Please try again later."
+  - 400 (validation): "Invalid question. Please check your input."
+  - Network errors: "Network error. Please check your connection and try again."
+- **Success Flow**:
+  - Shows green success message
+  - Clears textarea and resets anonymous checkbox
+  - Auto-clears message after 5 seconds
+- **Warning Banner**: Shows yellow banner when session not accepting questions
+- **Mobile Optimization**: Large touch targets, full-width buttons, responsive spacing
+- **Integrated into Participant Page**: Replaced placeholder in session/[code]/page.tsx
 
 **Acceptance Criteria:**
 
-- Run prettier over all new files to format them
-- Run build to ensure no errors
-- Run linter to ensure no errors
-- Update CLAUDE.md with new details
-- Mark the story as done in the markdown file for it.
+- ✅ Run prettier over all new files to format them
+- ✅ Run build to ensure no errors
+- ✅ Run linter to ensure no errors
+- ✅ Update CLAUDE.md with new details
+- ✅ Mark the story as done in the markdown file for it.
 
 ## User Story 8: Create question list and voting UI
 
