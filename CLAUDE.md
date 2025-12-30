@@ -47,6 +47,32 @@ Usage: `/check-conflicts`
 
 Never push without verifying the build passes locally. Use `build:local`, not `build`.
 
+## ⚠️ CRITICAL: Environment Files
+
+### `.env.local` - NEVER Modify Automatically
+
+**ABSOLUTE RULE**: NEVER automatically modify, overwrite, or suggest changes to `.env.local` without explicit user permission.
+
+**Why**:
+- Contains user's personal credentials (Google OAuth, API keys)
+- Contains production secrets and tokens
+- User has manually configured sensitive values
+- Accidental overwrites cause loss of irreplaceable credentials
+
+**Correct Approach**:
+1. ✅ If config changes are needed, ask user first: "Should I update .env.local with X?"
+2. ✅ Suggest changes user can make manually
+3. ✅ Provide example values in `.env.example` instead
+4. ✅ Document required variables in README.md
+
+**Incorrect Approach**:
+1. ❌ NEVER use Write tool on `.env.local`
+2. ❌ NEVER overwrite existing values
+3. ❌ NEVER assume values can be regenerated
+4. ❌ NEVER "restore" or "fix" without user confirmation
+
+**If user reports .env.local issues**: Ask what values are missing, provide template, let USER restore their own credentials.
+
 ## Git Workflow
 
 ### Conventional Commits
