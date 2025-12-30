@@ -56,6 +56,7 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/) f
 **Format**: `<type>: <description>`
 
 **Common types**:
+
 - `feat:` - New features
 - `fix:` - Bug fixes
 - `refactor:` - Code restructuring without changing behavior
@@ -66,6 +67,7 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/) f
 - `ci:` - CI/CD pipeline changes
 
 **Examples**:
+
 ```
 feat: add question voting endpoint
 fix: correct session expiration validation
@@ -81,9 +83,50 @@ chore: upgrade Next.js to 15.5.9
 - `npx prisma migrate dev` - Run database migrations in development
 - `npx prisma studio` - Open Prisma Studio (database GUI)
 
+## Logging and Observability
+
+### Seq (Structured Logging)
+
+Seq is a structured logging tool for local development debugging. It provides a web UI to view, search, and analyze logs in real-time.
+
+**Setup (Docker):**
+
+```bash
+docker run --name seq -d --restart unless-stopped -e ACCEPT_EULA=Y -p 5341:80 datalust/seq:latest
+```
+
+**Access Seq UI:** http://localhost:5341
+
+**Configuration (.env.local):**
+
+```bash
+ENABLE_SEQ_LOGGING="true"
+SEQ_SERVER_URL="http://localhost:5341"
+SEQ_API_KEY=""  # Optional
+```
+
+**Usage in Code:**
+
+```typescript
+import { logger } from "@/lib/logger";
+
+logger.info("User logged in", { userId: "123" });
+logger.error("Database connection failed", error, { connectionString: "..." });
+```
+
+**Benefits:**
+
+- Structured logs with properties (searchable/filterable)
+- Real-time log streaming
+- Query language for complex log analysis
+- Visual timeline and charts
+
+**Note:** Seq logging is optional and only enabled when `ENABLE_SEQ_LOGGING=true`
+
 ### Database Schema
 
 **Question Status Values:**
+
 - `pending` - Question submitted, awaiting host approval
 - `approved` - Question approved and visible to participants
 - `dismissed` - Question dismissed by host (not visible)
@@ -93,6 +136,7 @@ chore: upgrade Next.js to 15.5.9
 - `answered_via_docs` - Question answered in documentation
 
 **Pulse Check Feedback:**
+
 - Model: `PulseCheckFeedback` - Stores emoji feedback on answered questions
 - Feedback types: `helpful` (💚), `neutral` (💛), `not_helpful` (🔴)
 - Unique constraint on `[questionId, participantId]` prevents duplicate feedback per question
@@ -101,6 +145,7 @@ chore: upgrade Next.js to 15.5.9
 ### Participant Identity Model
 
 Participants are identified by client-generated UUIDs:
+
 - **Generated**: Browser creates UUID v4 on first session join
 - **Storage**: localStorage as `participant_{sessionCode}`
 - **Persistence**: Survives page refreshes in same browser/device
@@ -110,11 +155,13 @@ Participants are identified by client-generated UUIDs:
 **Rationale**: Solves corporate proxy/NAT issues (multiple people behind same IP) while maintaining zero-friction UX.
 
 **Implementation**:
+
 - `src/lib/participant-id.ts` - Utility functions for participant ID management
 - `src/types/participant.ts` - TypeScript types for participant identity
 - Database fields: `participantId` (String) in Question, Vote, PulseCheckFeedback models
 
 **Rate Limiting Strategy**:
+
 - **Primary deduplication**: participantId (user experience - prevents duplicate votes/feedback)
 - **Secondary rate limiting**: IP address (security - prevents abuse/spam)
 - Dual-layer approach handles both good faith participants AND potential bad actors
@@ -144,21 +191,25 @@ Participants are identified by client-generated UUIDs:
 ## Key Files
 
 ### Project Management
+
 - `projectmanagement/PRODUCT_SPEC.md` - Product requirements and features
 - `projectmanagement/TECHNICAL_SPEC.md` - Technical architecture and implementation details
 - `projectmanagement/feature_*.md` - User stories for specific features
 
 ### Database & Schema
+
 - `prisma/schema.prisma` - Database schema and models (includes NextAuth tables)
 - `prisma/schema.test.prisma` - Test database schema (SQLite)
 
 ### Authentication & Authorization
+
 - `src/lib/auth.ts` - NextAuth.js configuration with Google OAuth
 - `src/app/api/auth/[...nextauth]/route.ts` - NextAuth.js API routes
 - `src/middleware.ts` - Route protection middleware
 - `src/types/next-auth.d.ts` - NextAuth TypeScript type extensions
 
 ### Session Management
+
 - `src/app/api/sessions/route.ts` - Session creation API endpoint (POST)
 - `src/app/api/sessions/[code]/route.ts` - Session retrieval (GET) and update (PATCH) API endpoints
 - `src/app/create/page.tsx` - Session creation page with form and authentication
@@ -167,6 +218,7 @@ Participants are identified by client-generated UUIDs:
 - `src/types/session.ts` - TypeScript types for session entities and API responses
 
 ### Question Management & Audience Participation
+
 - `src/app/session/[code]/page.tsx` - Participant session view (public, no auth required)
 - `src/components/participant/QuestionSubmitForm.tsx` - Question submission form component
 - `src/components/participant/QuestionList.tsx` - Question list with auto-refresh
@@ -183,5 +235,6 @@ Participants are identified by client-generated UUIDs:
 - `src/types/participant.ts` - TypeScript types for participant identity
 
 ### Environment
+
 - `.env` - Environment variables (not committed to git)
 - `.env.example` - Environment variables template

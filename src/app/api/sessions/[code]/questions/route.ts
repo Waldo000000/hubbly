@@ -13,6 +13,7 @@ import {
 } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request-utils";
 import { isValidParticipantId } from "@/lib/participant-id";
+import { logger } from "@/lib/logger";
 import type {
   SubmitQuestionRequest,
   SubmitQuestionResponse,
@@ -23,9 +24,10 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ code: string }> },
 ) {
+  const { code } = await params;
+  const sessionCode = code.toUpperCase();
+
   try {
-    const { code } = await params;
-    const sessionCode = code.toUpperCase();
     const body = (await req.json()) as SubmitQuestionRequest;
 
     // Validate participantId format
@@ -148,7 +150,10 @@ export async function POST(
 
     return NextResponse.json(response, { status: 201, headers });
   } catch (error) {
-    console.error("Error submitting question:", error);
+    logger.error("Error submitting question", error, {
+      sessionCode: code,
+      endpoint: "POST /api/sessions/[code]/questions",
+    });
     return NextResponse.json(
       {
         code: "INTERNAL_ERROR",
@@ -163,9 +168,10 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ code: string }> },
 ) {
+  const { code } = await params;
+  const sessionCode = code.toUpperCase();
+
   try {
-    const { code } = await params;
-    const sessionCode = code.toUpperCase();
 
     // Verify session exists
     const session = await prisma.qaSession.findUnique({
@@ -209,7 +215,10 @@ export async function GET(
 
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    console.error("Error retrieving questions:", error);
+    logger.error("Error retrieving questions", error, {
+      sessionCode: code,
+      endpoint: "GET /api/sessions/[code]/questions",
+    });
     return NextResponse.json(
       {
         code: "INTERNAL_ERROR",
