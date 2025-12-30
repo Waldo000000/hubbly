@@ -187,28 +187,43 @@
 
 **Goal:** Test all audience participation backend logic to ensure correctness and reliability
 
-**Status:** Not Started
+**Status:** Completed
 
-**Tasks:**
+**Completed Tasks:**
 
-1. Create integration tests in __tests__/integration/audience-participation.test.ts
-2. Test question submission workflow with valid data, empty content, too long content
-3. Test question submission when session is inactive or not accepting questions
-4. Test question retrieval returns only approved questions sorted by votes
-5. Test voting workflow including duplicate vote prevention
-6. Test vote removal workflow
-7. Test pulse check submission with valid and invalid feedback values
-8. Test pulse check duplicate prevention
-9. Test rate limiting for all endpoints
-10. Test error scenarios and edge cases
+1. ✅ Reviewed existing test coverage (101 tests) against testing strategy
+2. ✅ Identified gaps: rate limiting and request utilities lacked direct unit tests
+3. ✅ Created `__tests__/utils/rate-limit.test.ts` with 13 tests covering:
+   - Rate limit enforcement (allow/deny logic)
+   - Multiple requests tracking within window
+   - Rate limit isolation by action and identifier
+   - Time window expiration and reset
+   - Retry-after calculation
+   - Rate limit headers generation (X-RateLimit-Limit, X-RateLimit-Remaining, Retry-After)
+   - RATE_LIMITS configuration validation
+4. ✅ Created `__tests__/utils/request-utils.test.ts` with 12 tests covering:
+   - IP extraction from all proxy header types (x-forwarded-for, x-real-ip, x-vercel-forwarded-for, cf-connecting-ip)
+   - Header priority order validation
+   - IPv6 address support
+   - Edge cases (whitespace trimming, single IPs, comma-separated lists, missing headers)
+5. ✅ Fixed NextRequest error by adding `@jest-environment node` to test files
+6. ✅ All 126 tests passing (integration + utility tests)
+
+**Implementation Notes:**
+
+- **Rate Limit Tests**: Focus on business logic correctness, not storage implementation details
+- **Request Utils Tests**: Validate IP extraction from all proxy header types used in production (Vercel, Cloudflare, standard)
+- **Coverage**: All critical utility functions now have direct unit tests per testing strategy
+- **Test Database**: SQLite in-memory for isolation
+- **Total Test Count**: 126 tests (up from 101)
 
 **Acceptance Criteria:**
 
-- Run prettier over all new files to format them
-- Run build to ensure no errors
-- Run linter to ensure no errors
-- Update CLAUDE.md with new details
-- Mark the story as done in the markdown file for it.
+- ✅ Run prettier over all new files to format them
+- ✅ Run build to ensure no errors
+- ✅ Run linter to ensure no errors
+- ✅ Update CLAUDE.md with new details
+- ✅ Mark the story as done in the markdown file for it.
 
 ## User Story 6: Create participant session view and name entry
 

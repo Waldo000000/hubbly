@@ -134,6 +134,8 @@ Participants are identified by client-generated UUIDs:
 - `__tests__/integration/sessions.test.ts` - Session business logic integration tests
 - `__tests__/integration/question-submission.test.ts` - Question submission business logic tests
 - `__tests__/utils/session-utils.test.ts` - Session utilities unit tests
+- `__tests__/utils/rate-limit.test.ts` - Rate limiting business logic unit tests
+- `__tests__/utils/request-utils.test.ts` - Request utility (IP extraction) unit tests
 - `__tests__/integration/session-lifecycle.test.ts` - Complete session workflow tests
 - `__tests__/setup/test-db.ts` - Test database utilities
 - `jest.config.js` - Jest configuration with Next.js support
