@@ -23,7 +23,7 @@ export default function QuestionSubmitForm({
   const [errorMessage, setErrorMessage] = useState("");
 
   const characterCount = content.length;
-  const maxCharacters = 500;
+  const maxCharacters = 10000;
   const isContentValid = characterCount > 0 && characterCount <= maxCharacters;
 
   const handleSubmit = async (e: React.FormEvent) => {
