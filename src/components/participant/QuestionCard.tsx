@@ -103,48 +103,52 @@ export default function QuestionCard({
   ].includes(question.status);
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4 flex gap-4">
-      {/* Vote button */}
-      <div className="flex flex-col items-center gap-1 flex-shrink-0">
-        <button
-          onClick={handleVoteToggle}
-          disabled={isVoting}
-          className={`px-3 py-2 rounded-lg flex flex-col items-center justify-center transition-all border-2 min-w-[64px] ${
-            isVotedByMe
-              ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 hover:border-blue-700"
-              : "bg-white text-gray-700 border-gray-300 hover:border-blue-500 hover:bg-blue-50"
-          } disabled:opacity-50 disabled:cursor-not-allowed`}
-          aria-label={isVotedByMe ? "Remove vote" : "Vote for this question"}
-        >
-          <span className="text-2xl leading-none">▲</span>
-          <span className="text-sm font-bold mt-1">{question.voteCount}</span>
-          <span className="text-xs mt-1">{isVotedByMe ? "Voted" : "Vote"}</span>
-        </button>
-      </div>
+    <div className="bg-white rounded-lg shadow-md border-2 border-gray-200 p-5 hover:shadow-lg transition-shadow">
+      <div className="flex gap-4">
+        {/* Vote button - left side */}
+        <div className="flex flex-col items-center gap-1 flex-shrink-0">
+          <button
+            onClick={handleVoteToggle}
+            disabled={isVoting}
+            className={`px-3 py-2 rounded-lg flex flex-col items-center justify-center transition-all border-2 min-w-[64px] ${
+              isVotedByMe
+                ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 hover:border-blue-700"
+                : "bg-white text-gray-700 border-gray-300 hover:border-blue-500 hover:bg-blue-50"
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+            aria-label={isVotedByMe ? "Remove vote" : "Vote for this question"}
+          >
+            <span className="text-2xl leading-none">▲</span>
+            <span className="text-sm font-bold mt-1">{question.voteCount}</span>
+            <span className="text-xs mt-1">{isVotedByMe ? "Voted" : "Vote"}</span>
+          </button>
+        </div>
 
-      {/* Question content */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <div className="flex-1">
-            <p className="text-gray-900 text-base leading-relaxed break-words">
-              {question.content}
-            </p>
+        {/* Question content - right side */}
+        <div className="flex-1 min-w-0">
+          {/* Author and status at top */}
+          <div className="flex items-center gap-2 flex-wrap mb-2">
+            <span className="text-sm font-medium text-gray-600">
+              {authorDisplay}
+            </span>
+            {getStatusBadge()}
           </div>
-        </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm text-gray-500">by {authorDisplay}</span>
-          {getStatusBadge()}
-        </div>
+          {/* Question text */}
+          <p className="text-gray-900 text-base leading-relaxed break-words">
+            {question.content}
+          </p>
 
-        {/* Pulse check for answered questions */}
-        {isAnswered && (
-          <PulseCheck
-            questionId={question.id}
-            participantId={participantId}
-            sessionCode={sessionCode}
-          />
-        )}
+          {/* Pulse check for answered questions */}
+          {isAnswered && (
+            <div className="mt-3">
+              <PulseCheck
+                questionId={question.id}
+                participantId={participantId}
+                sessionCode={sessionCode}
+              />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

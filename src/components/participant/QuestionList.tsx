@@ -149,7 +149,7 @@ export default function QuestionList({
         </span>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-4">
         {questions.map((question) => (
           <QuestionCard
             key={question.id}
