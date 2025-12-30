@@ -1,6 +1,6 @@
 /**
- * Question Submission Business Logic Integration Tests
- * Tests complete workflows for question submission using business logic
+ * Question Submission and Voting Business Logic Integration Tests
+ * Tests complete workflows for question submission, retrieval, and voting using business logic
  * @jest-environment node
  */
 
@@ -9,7 +9,7 @@ import { validateQuestionInput } from "@/lib/question-utils";
 import { isValidParticipantId } from "@/lib/participant-id";
 import { v4 as uuidv4 } from "uuid";
 
-describe("Question Submission Business Logic Integration Tests", () => {
+describe("Question Submission and Voting Business Logic Integration Tests", () => {
   const db = getTestDb();
   let testSession: { id: string; code: string };
   let participantId: string;
@@ -412,6 +412,318 @@ describe("Question Submission Business Logic Integration Tests", () => {
       expect(
         myQuestions.every((q) => q.participantId === myParticipantId),
       ).toBe(true);
+    });
+  });
+
+  describe("Question Retrieval Workflow", () => {
+    it("should retrieve only approved questions", async () => {
+      const participant1 = uuidv4();
+      const participant2 = uuidv4();
+
+      // Create questions with different statuses
+      await db.question.create({
+        data: {
+          sessionId: testSession.id,
+          participantId: participant1,
+          content: "Pending question",
+          status: "pending",
+          voteCount: 5,
+          isAnonymous: false,
+        },
+      });
+
+      const approvedQ1 = await db.question.create({
+        data: {
+          sessionId: testSession.id,
+          participantId: participant1,
+          content: "Approved question 1",
+          status: "approved",
+          voteCount: 10,
+          isAnonymous: false,
+        },
+      });
+
+      const approvedQ2 = await db.question.create({
+        data: {
+          sessionId: testSession.id,
+          participantId: participant2,
+          content: "Approved question 2",
+          status: "approved",
+          voteCount: 3,
+          isAnonymous: false,
+        },
+      });
+
+      await db.question.create({
+        data: {
+          sessionId: testSession.id,
+          participantId: participant2,
+          content: "Dismissed question",
+          status: "dismissed",
+          voteCount: 2,
+          isAnonymous: false,
+        },
+      });
+
+      // Retrieve only approved questions
+      const approvedQuestions = await db.question.findMany({
+        where: {
+          sessionId: testSession.id,
+          status: "approved",
+        },
+        orderBy: [{ voteCount: "desc" }, { createdAt: "desc" }],
+      });
+
+      expect(approvedQuestions).toHaveLength(2);
+      expect(approvedQuestions[0].id).toBe(approvedQ1.id); // Higher vote count
+      expect(approvedQuestions[1].id).toBe(approvedQ2.id);
+      expect(approvedQuestions.every((q) => q.status === "approved")).toBe(
+        true,
+      );
+    });
+
+    it("should sort questions by vote count descending", async () => {
+      const participant = uuidv4();
+
+      // Create approved questions with different vote counts
+      const q1 = await db.question.create({
+        data: {
+          sessionId: testSession.id,
+          participantId: participant,
+          content: "Question with 5 votes",
+          status: "approved",
+          voteCount: 5,
+          isAnonymous: false,
+        },
+      });
+
+      const q2 = await db.question.create({
+        data: {
+          sessionId: testSession.id,
+          participantId: participant,
+          content: "Question with 15 votes",
+          status: "approved",
+          voteCount: 15,
+          isAnonymous: false,
+        },
+      });
+
+      const q3 = await db.question.create({
+        data: {
+          sessionId: testSession.id,
+          participantId: participant,
+          content: "Question with 10 votes",
+          status: "approved",
+          voteCount: 10,
+          isAnonymous: false,
+        },
+      });
+
+      // Retrieve sorted by vote count
+      const sortedQuestions = await db.question.findMany({
+        where: {
+          sessionId: testSession.id,
+          status: "approved",
+        },
+        orderBy: [{ voteCount: "desc" }],
+      });
+
+      expect(sortedQuestions[0].id).toBe(q2.id); // 15 votes
+      expect(sortedQuestions[1].id).toBe(q3.id); // 10 votes
+      expect(sortedQuestions[2].id).toBe(q1.id); // 5 votes
+    });
+  });
+
+  describe("Voting Workflow", () => {
+    it("should create vote and increment vote count", async () => {
+      const participant = uuidv4();
+
+      // Create a question
+      const question = await db.question.create({
+        data: {
+          sessionId: testSession.id,
+          participantId: uuidv4(),
+          content: "Question to vote on",
+          status: "approved",
+          voteCount: 0,
+          isAnonymous: false,
+        },
+      });
+
+      // Create vote and increment count in transaction
+      const [vote, updatedQuestion] = await db.$transaction([
+        db.vote.create({
+          data: {
+            questionId: question.id,
+            participantId: participant,
+          },
+        }),
+        db.question.update({
+          where: { id: question.id },
+          data: {
+            voteCount: {
+              increment: 1,
+            },
+          },
+        }),
+      ]);
+
+      expect(vote.participantId).toBe(participant);
+      expect(vote.questionId).toBe(question.id);
+      expect(updatedQuestion.voteCount).toBe(1);
+    });
+
+    it("should prevent duplicate votes", async () => {
+      const participant = uuidv4();
+
+      // Create a question
+      const question = await db.question.create({
+        data: {
+          sessionId: testSession.id,
+          participantId: uuidv4(),
+          content: "Question to vote on",
+          status: "approved",
+          voteCount: 0,
+          isAnonymous: false,
+        },
+      });
+
+      // Create first vote
+      await db.vote.create({
+        data: {
+          questionId: question.id,
+          participantId: participant,
+        },
+      });
+
+      // Try to create duplicate vote (should fail due to unique constraint)
+      await expect(
+        db.vote.create({
+          data: {
+            questionId: question.id,
+            participantId: participant,
+          },
+        }),
+      ).rejects.toThrow();
+    });
+
+    it("should delete vote and decrement vote count", async () => {
+      const participant = uuidv4();
+
+      // Create a question with a vote
+      const question = await db.question.create({
+        data: {
+          sessionId: testSession.id,
+          participantId: uuidv4(),
+          content: "Question to unvote",
+          status: "approved",
+          voteCount: 1,
+          isAnonymous: false,
+        },
+      });
+
+      await db.vote.create({
+        data: {
+          questionId: question.id,
+          participantId: participant,
+        },
+      });
+
+      // Delete vote and decrement count in transaction
+      const [, updatedQuestion] = await db.$transaction([
+        db.vote.delete({
+          where: {
+            questionId_participantId: {
+              questionId: question.id,
+              participantId: participant,
+            },
+          },
+        }),
+        db.question.update({
+          where: { id: question.id },
+          data: {
+            voteCount: {
+              decrement: 1,
+            },
+          },
+        }),
+      ]);
+
+      expect(updatedQuestion.voteCount).toBe(0);
+
+      // Verify vote is deleted
+      const deletedVote = await db.vote.findUnique({
+        where: {
+          questionId_participantId: {
+            questionId: question.id,
+            participantId: participant,
+          },
+        },
+      });
+
+      expect(deletedVote).toBeNull();
+    });
+
+    it("should track votes by different participants", async () => {
+      const participant1 = uuidv4();
+      const participant2 = uuidv4();
+      const participant3 = uuidv4();
+
+      // Create a question
+      const question = await db.question.create({
+        data: {
+          sessionId: testSession.id,
+          participantId: uuidv4(),
+          content: "Popular question",
+          status: "approved",
+          voteCount: 0,
+          isAnonymous: false,
+        },
+      });
+
+      // Three participants vote
+      await db.vote.create({
+        data: {
+          questionId: question.id,
+          participantId: participant1,
+        },
+      });
+
+      await db.vote.create({
+        data: {
+          questionId: question.id,
+          participantId: participant2,
+        },
+      });
+
+      await db.vote.create({
+        data: {
+          questionId: question.id,
+          participantId: participant3,
+        },
+      });
+
+      // Update vote count
+      await db.question.update({
+        where: { id: question.id },
+        data: { voteCount: 3 },
+      });
+
+      // Verify all votes exist
+      const votes = await db.vote.findMany({
+        where: { questionId: question.id },
+      });
+
+      expect(votes).toHaveLength(3);
+      expect(votes.map((v) => v.participantId).sort()).toEqual(
+        [participant1, participant2, participant3].sort(),
+      );
+
+      const updatedQuestion = await db.question.findUnique({
+        where: { id: question.id },
+      });
+
+      expect(updatedQuestion?.voteCount).toBe(3);
     });
   });
 });

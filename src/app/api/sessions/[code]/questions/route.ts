@@ -1,6 +1,6 @@
 /**
- * POST /api/sessions/[code]/questions
- * Submit a new question to a Q&A session
+ * GET /api/sessions/[code]/questions - Retrieve approved questions
+ * POST /api/sessions/[code]/questions - Submit a new question to a Q&A session
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -16,6 +16,7 @@ import { isValidParticipantId } from "@/lib/participant-id";
 import type {
   SubmitQuestionRequest,
   SubmitQuestionResponse,
+  GetQuestionsResponse,
 } from "@/types/question";
 
 export async function POST(
@@ -152,6 +153,67 @@ export async function POST(
       {
         code: "INTERNAL_ERROR",
         message: "An error occurred while submitting the question",
+      },
+      { status: 500 },
+    );
+  }
+}
+
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ code: string }> },
+) {
+  try {
+    const { code } = await params;
+    const sessionCode = code.toUpperCase();
+
+    // Verify session exists
+    const session = await prisma.qaSession.findUnique({
+      where: { code: sessionCode },
+    });
+
+    if (!session) {
+      return NextResponse.json(
+        {
+          code: "SESSION_NOT_FOUND",
+          message: "Session not found",
+        },
+        { status: 404 },
+      );
+    }
+
+    // Retrieve approved questions sorted by vote count (desc) and creation date (desc)
+    const questions = await prisma.question.findMany({
+      where: {
+        sessionId: session.id,
+        status: "approved",
+      },
+      orderBy: [{ voteCount: "desc" }, { createdAt: "desc" }],
+    });
+
+    const response: GetQuestionsResponse = {
+      questions: questions.map((q) => ({
+        id: q.id,
+        sessionId: q.sessionId,
+        participantId: q.participantId || undefined,
+        authorName: q.authorName || undefined,
+        content: q.content,
+        voteCount: q.voteCount,
+        status: q.status,
+        isAnonymous: q.isAnonymous,
+        createdAt: q.createdAt.toISOString(),
+        updatedAt: q.updatedAt.toISOString(),
+      })),
+      total: questions.length,
+    };
+
+    return NextResponse.json(response, { status: 200 });
+  } catch (error) {
+    console.error("Error retrieving questions:", error);
+    return NextResponse.json(
+      {
+        code: "INTERNAL_ERROR",
+        message: "An error occurred while retrieving questions",
       },
       { status: 500 },
     );

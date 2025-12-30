@@ -91,29 +91,48 @@
 
 **Goal:** Implement backend logic for viewing approved questions and voting on them
 
-**Status:** Not Started
+**Status:** Completed
 
-**Tasks:**
+**Completed Tasks:**
 
-1. Create GET /api/sessions/[code]/questions endpoint that returns only approved questions
-2. Sort questions by vote count (descending) and creation date
-3. Include vote count, question status, and participantId in response
-4. Create POST /api/questions/[id]/vote endpoint for upvoting questions
-5. Check for duplicate votes using participantId (unique constraint on questionId + participantId)
-6. Increment vote count on question when vote is added
-7. Create DELETE /api/questions/[id]/vote endpoint for removing votes
-8. Decrement vote count on question when vote is removed
-9. Implement dual-layer rate limiting for votes:
+1. ✅ Created GET /api/sessions/[code]/questions endpoint that returns only approved questions
+2. ✅ Sort questions by vote count (descending) and creation date
+3. ✅ Include vote count, question status, and participantId in response
+4. ✅ Created POST /api/questions/[id]/vote endpoint for upvoting questions
+5. ✅ Check for duplicate votes using participantId (unique constraint on questionId + participantId)
+6. ✅ Increment vote count on question when vote is added
+7. ✅ Created DELETE /api/questions/[id]/vote endpoint for removing votes
+8. ✅ Decrement vote count on question when vote is removed
+9. ✅ Implemented dual-layer rate limiting for votes:
    - Primary: participantId-based deduplication (UX)
    - Secondary: IP-based rate limiting (security - 30 votes per minute per IP)
+10. ✅ Added 6 new integration tests covering:
+    - Question retrieval (approved only, sorted by votes)
+    - Vote creation and increment logic
+    - Duplicate vote prevention
+    - Vote deletion and decrement logic
+    - Multi-participant voting
+
+**Implementation Details:**
+
+- **GET /api/sessions/[code]/questions**: Retrieves approved questions only, sorted by voteCount DESC, createdAt DESC
+- **POST /api/questions/[id]/vote**: Creates vote in transaction with vote count increment
+- **DELETE /api/questions/[id]/vote**: Deletes vote in transaction with vote count decrement
+- **Error Handling**: Returns appropriate errors for:
+  - Invalid participantId format
+  - Question not found
+  - Already voted (409 Conflict)
+  - Vote not found (404 for DELETE)
+  - Rate limit exceeded (429)
+- **Testing**: All 96 tests passing, build succeeds
 
 **Acceptance Criteria:**
 
-- Run prettier over all new files to format them
-- Run build to ensure no errors
-- Run linter to ensure no errors
-- Update CLAUDE.md with new details
-- Mark the story as done in the markdown file for it.
+- ✅ Run prettier over all new files to format them
+- ✅ Run build to ensure no errors
+- ✅ Run linter to ensure no errors
+- ✅ Update CLAUDE.md with new details
+- ✅ Mark the story as done in the markdown file for it.
 
 ## User Story 4: Create pulse check feedback endpoint
 

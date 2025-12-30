@@ -165,7 +165,8 @@ Participants are identified by client-generated UUIDs:
 - `src/types/session.ts` - TypeScript types for session entities and API responses
 
 ### Question Management & Audience Participation
-- `src/app/api/sessions/[code]/questions/route.ts` - Question submission API endpoint (POST)
+- `src/app/api/sessions/[code]/questions/route.ts` - Question submission (POST) and retrieval (GET) API endpoints
+- `src/app/api/questions/[id]/vote/route.ts` - Voting endpoints (POST to vote, DELETE to unvote)
 - `src/lib/question-utils.ts` - Question validation and business logic
 - `src/lib/participant-id.ts` - Participant UUID generation and validation
 - `src/lib/rate-limit.ts` - In-memory rate limiting for API endpoints
