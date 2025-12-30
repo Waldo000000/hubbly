@@ -20,7 +20,7 @@ export type { QuestionStatus, PulseCheckFeedbackType };
 
 /** Submit a new question to a session */
 export interface SubmitQuestionRequest {
-  /** Question content (1-10000 characters) */
+  /** Question content (1-100000 characters) */
   content: string;
   /** Participant's display name (optional) */
   authorName?: string;
@@ -171,7 +171,7 @@ export interface QuestionError {
 
 export const QUESTION_VALIDATION: QuestionValidation = {
   minLength: 1,
-  maxLength: 10000,
+  maxLength: 100000,
   required: true,
 };
 

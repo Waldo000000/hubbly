@@ -22,19 +22,18 @@ export default function QuestionSubmitForm({
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const characterCount = content.length;
-  const maxCharacters = 10000;
-  const isContentValid = characterCount > 0 && characterCount <= maxCharacters;
+  const maxCharacters = 100000;
+  const isContentValid = content.length > 0 && content.length <= maxCharacters;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validation
     if (!isContentValid) {
-      if (characterCount === 0) {
+      if (content.length === 0) {
         setErrorMessage("Question content is required.");
       } else {
-        setErrorMessage(`Question cannot exceed ${maxCharacters} characters.`);
+        setErrorMessage(`Question is too long (maximum ${maxCharacters.toLocaleString()} characters).`);
       }
       return;
     }
@@ -126,19 +125,9 @@ export default function QuestionSubmitForm({
             onChange={(e) => setContent(e.target.value)}
             placeholder="What would you like to ask?"
             rows={4}
-            maxLength={maxCharacters}
             disabled={!isAcceptingQuestions || isSubmitting}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed resize-none"
           />
-          <div className="flex justify-between items-center mt-1">
-            <span
-              className={`text-sm ${
-                characterCount > maxCharacters ? "text-red-600" : "text-gray-600"
-              }`}
-            >
-              {characterCount} / {maxCharacters} characters
-            </span>
-          </div>
         </div>
 
         {/* Anonymous checkbox */}
