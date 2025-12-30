@@ -59,6 +59,34 @@ Seq provides a web UI to view, search, and analyze logs in real-time. Helpful fo
 
 Logs will appear in both console and Seq. See [TECHNICAL_SPEC.md](./projectmanagement/TECHNICAL_SPEC.md#logging-and-observability) for usage examples.
 
+## Optional: Playwright MCP (Frontend Development)
+
+Playwright MCP enables AI-assisted frontend debugging with automatic screenshots and browser interaction.
+
+**This project includes `.mcp.json`** - Playwright MCP is configured as a project-scoped server. When you use Claude Code in this project, it will automatically detect and offer to enable the Playwright MCP.
+
+**Manual installation (if needed):**
+```bash
+# The .mcp.json file configures this automatically
+# but you can verify with:
+claude mcp list
+```
+
+**What it enables:**
+- Automatic screenshot capture during development
+- AI can navigate and test your app autonomously
+- No manual screenshot sharing needed
+- Verify visual styling and layouts automatically
+
+**Usage in Claude Code:**
+- "Use Playwright to open localhost:3000 and show me the session page"
+- "Take a screenshot of the question list"
+- "Navigate to the host dashboard and capture the UI"
+
+**Note:** Claude Code will prompt for approval the first time you use the project-scoped MCP.
+
+See [Microsoft Playwright MCP](https://github.com/microsoft/playwright-mcp) for details.
+
 ## Without Database
 
 The app will run without a database connection but will show a red error status. All database operations will fail gracefully.

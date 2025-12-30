@@ -149,6 +149,51 @@ logger.error("Database connection failed", error, { connectionString: "..." });
 
 **Note:** Seq logging is optional and only enabled when `ENABLE_SEQ_LOGGING=true`
 
+## Development Tools
+
+### Playwright MCP (Frontend Testing & Screenshots)
+
+Playwright MCP enables automated browser testing and visual debugging during development.
+
+**Configuration:**
+This project includes a `.mcp.json` file with Playwright MCP configured as a **project-scoped server**. This means:
+- All team members automatically get access to Playwright when using Claude Code
+- Configuration is version controlled
+- Claude Code will prompt for approval on first use
+- No manual installation needed
+
+**Available in Claude Code sessions for:**
+- Automatic screenshot capture of localhost:3000
+- Visual verification of styling changes
+- Frontend debugging without manual screenshots
+- Interactive testing of user flows
+
+**Common commands:**
+```typescript
+// Take screenshot of specific route
+"Use Playwright to navigate to localhost:3000/session/ABC123 and take a screenshot"
+
+// Test user interactions
+"Click the vote button and show me what happens"
+
+// Verify styling
+"Open the question list page and capture what the cards look like"
+```
+
+**Manual verification:**
+```bash
+# Check Playwright is available
+claude mcp list
+
+# Reset approval choices if needed
+claude mcp reset-project-choices
+```
+
+**Resources:**
+- [Playwright MCP Server](https://github.com/microsoft/playwright-mcp)
+- [Using with Claude Code](https://til.simonwillison.net/claude-code/playwright-mcp-claude-code)
+- [MCP Documentation](https://code.claude.com/docs/en/mcp)
+
 ### Database Schema
 
 **Question Status Values:**
