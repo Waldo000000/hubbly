@@ -109,25 +109,17 @@ export default function QuestionCard({
         <button
           onClick={handleVoteToggle}
           disabled={isVoting}
-          className={`w-12 h-12 rounded-lg flex items-center justify-center transition-all ${
+          className={`px-3 py-2 rounded-lg flex flex-col items-center justify-center transition-all border-2 min-w-[64px] ${
             isVotedByMe
-              ? "bg-blue-600 text-white hover:bg-blue-700"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 hover:border-blue-700"
+              : "bg-white text-gray-700 border-gray-300 hover:border-blue-500 hover:bg-blue-50"
           } disabled:opacity-50 disabled:cursor-not-allowed`}
           aria-label={isVotedByMe ? "Remove vote" : "Vote for this question"}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="w-6 h-6"
-          >
-            <path d="M12 4l-8 8h5v8h6v-8h5z" />
-          </svg>
+          <span className="text-2xl leading-none">▲</span>
+          <span className="text-sm font-bold mt-1">{question.voteCount}</span>
+          <span className="text-xs mt-1">{isVotedByMe ? "Voted" : "Vote"}</span>
         </button>
-        <span className="text-sm font-semibold text-gray-700">
-          {question.voteCount}
-        </span>
       </div>
 
       {/* Question content */}
