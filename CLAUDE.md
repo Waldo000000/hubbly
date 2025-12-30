@@ -171,6 +171,7 @@ Participants are identified by client-generated UUIDs:
 - `src/components/participant/QuestionSubmitForm.tsx` - Question submission form component
 - `src/components/participant/QuestionList.tsx` - Question list with auto-refresh
 - `src/components/participant/QuestionCard.tsx` - Individual question card with voting
+- `src/components/participant/PulseCheck.tsx` - Pulse check emoji feedback component
 - `src/app/api/sessions/[code]/questions/route.ts` - Question submission (POST) and retrieval (GET) API endpoints
 - `src/app/api/questions/[id]/vote/route.ts` - Voting endpoints (POST to vote, DELETE to unvote)
 - `src/app/api/questions/[id]/pulse/route.ts` - Pulse check feedback endpoint (POST)

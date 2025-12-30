@@ -155,6 +155,7 @@ export default function QuestionList({
             key={question.id}
             question={question}
             participantId={participantId}
+            sessionCode={sessionCode}
             isVotedByMe={votedQuestions.has(question.id)}
             onVoteChange={handleVoteChange}
           />

@@ -378,24 +378,54 @@
 
 **Goal:** Build the emoji feedback interface for participants to rate how helpful answers were
 
-**Status:** Not Started
+**Status:** Completed
 
-**Tasks:**
+**Completed Tasks:**
 
-1. Create src/components/participant/PulseCheck.tsx component
-2. Display "Did this answer help?" prompt above emoji buttons
-3. Add three emoji buttons: 💚 (helpful), 💛 (neutral), 🔴 (not helpful)
-4. Show pulse check only for questions with answered status (answered, answered_live, answered_via_docs)
-5. Add visual feedback when feedback is submitted (disabled state, checkmark)
-6. Prevent duplicate submissions by checking with API and tracking locally in localStorage
-7. Display error messages if submission fails
-8. Mobile-optimized with large tap targets (min 44px)
-9. Add smooth transitions and animations for better UX
+1. ✅ Created `src/components/participant/PulseCheck.tsx` component
+2. ✅ Display "Did this answer help?" prompt above emoji buttons
+3. ✅ Added three emoji buttons: 💚 (helpful), 💛 (neutral), 🔴 (not helpful)
+4. ✅ Show pulse check only for questions with answered status (answered, answered_live, answered_via_docs)
+5. ✅ Added visual feedback when feedback is submitted (disabled state with checkmark and confirmation message)
+6. ✅ Prevent duplicate submissions by tracking in localStorage (`pulse_check_{sessionCode}`)
+7. ✅ Display error messages if submission fails
+8. ✅ Mobile-optimized with large tap targets (min 56px height)
+9. ✅ Added smooth transitions for better UX (opacity transitions on hover)
+
+**Implementation Details:**
+
+- **PulseCheck Component**:
+  - Props: questionId, participantId, sessionCode
+  - Three emoji buttons with labels: 💚 Helpful, 💛 Neutral, 🔴 Not helpful
+  - POSTs to `/api/questions/${questionId}/pulse`
+  - Shows "Did this answer help?" prompt
+  - Min 56px button height for mobile accessibility
+- **Visual Feedback**:
+  - Before submission: Three colorful buttons (green, yellow, red backgrounds)
+  - After submission: Shows checkmark with "You rated this answer as: [emoji] [label]"
+  - Hover state: Opacity transition
+- **localStorage Management**:
+  - Key: `pulse_check_{sessionCode}`
+  - Stores object mapping questionId to feedback type
+  - Persists across page refreshes
+  - Handles 409 Conflict (already submitted) gracefully
+- **Error Handling**:
+  - Network errors: "Network error. Please try again."
+  - API errors: Displays error message from response
+  - Shows error in small red banner above buttons
+- **Integration**:
+  - Integrated into QuestionCard component
+  - Only renders for answered questions (answered, answered_live, answered_via_docs)
+  - Appears below question content with border separator
+- **Mobile Optimization**:
+  - Large touch targets (56px min height)
+  - Flex layout for equal-width buttons
+  - Responsive spacing and typography
 
 **Acceptance Criteria:**
 
-- Run prettier over all new files to format them
-- Run build to ensure no errors
-- Run linter to ensure no errors
-- Update CLAUDE.md with new details
-- Mark the story as done in the markdown file for it.
+- ✅ Run prettier over all new files to format them
+- ✅ Run build to ensure no errors
+- ✅ Run linter to ensure no errors
+- ✅ Update CLAUDE.md with new details
+- ✅ Mark the story as done in the markdown file for it.

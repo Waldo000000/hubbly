@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import type { QuestionResponse } from "@/types/question";
+import PulseCheck from "./PulseCheck";
 
 interface QuestionCardProps {
   question: QuestionResponse;
   participantId: string;
+  sessionCode: string;
   isVotedByMe: boolean;
   onVoteChange: (questionId: string, voted: boolean) => void;
 }
@@ -13,6 +15,7 @@ interface QuestionCardProps {
 export default function QuestionCard({
   question,
   participantId,
+  sessionCode,
   isVotedByMe,
   onVoteChange,
 }: QuestionCardProps) {
@@ -92,6 +95,13 @@ export default function QuestionCard({
     ? "Anonymous"
     : question.authorName || "Anonymous";
 
+  // Check if question has answered status for pulse check
+  const isAnswered = [
+    "answered",
+    "answered_live",
+    "answered_via_docs",
+  ].includes(question.status);
+
   return (
     <div className="bg-white rounded-lg shadow-sm p-4 flex gap-4">
       {/* Vote button */}
@@ -134,6 +144,15 @@ export default function QuestionCard({
           <span className="text-sm text-gray-500">by {authorDisplay}</span>
           {getStatusBadge()}
         </div>
+
+        {/* Pulse check for answered questions */}
+        {isAnswered && (
+          <PulseCheck
+            questionId={question.id}
+            participantId={participantId}
+            sessionCode={sessionCode}
+          />
+        )}
       </div>
     </div>
   );
