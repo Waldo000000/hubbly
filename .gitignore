@@ -42,5 +42,8 @@ test.sqlite
 # Claude local settings
 .claude/settings.local.json
 
+# Playwright MCP screenshots
+.playwright-mcp/
+
 .vercel
 .env*.local
