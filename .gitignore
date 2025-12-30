@@ -38,3 +38,6 @@ next-env.d.ts
 *.sqlite
 test.db
 test.sqlite
+
+# Claude local settings
+.claude/settings.local.json
