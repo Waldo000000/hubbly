@@ -47,6 +47,34 @@ Usage: `/check-conflicts`
 
 Never push without verifying the build passes locally. Use `build:local`, not `build`.
 
+## Git Workflow
+
+### Conventional Commits
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) for all commit messages.
+
+**Format**: `<type>: <description>`
+
+**Common types**:
+- `feat:` - New features
+- `fix:` - Bug fixes
+- `refactor:` - Code restructuring without changing behavior
+- `test:` - Adding or updating tests
+- `docs:` - Documentation changes
+- `chore:` - Maintenance tasks (dependencies, configuration)
+- `build:` - Build system changes
+- `ci:` - CI/CD pipeline changes
+
+**Examples**:
+```
+feat: add question voting endpoint
+fix: correct session expiration validation
+refactor: simplify session code generation logic
+test: add integration tests for audience participation
+docs: update API endpoint documentation
+chore: upgrade Next.js to 15.5.9
+```
+
 ## Database Commands
 
 - `npx prisma generate` - Generate Prisma client

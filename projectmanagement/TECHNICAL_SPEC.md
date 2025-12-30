@@ -208,6 +208,14 @@ GOOGLE_CLIENT_SECRET=...
 2. Prisma schema migration
 3. Database seeding (optional)
 
+### Git Workflow
+
+**Conventional Commits**: This project uses [Conventional Commits](https://www.conventionalcommits.org/) for all commit messages (format: `<type>: <description>`).
+
+Common types: `feat:`, `fix:`, `refactor:`, `test:`, `docs:`, `chore:`, `build:`, `ci:`
+
+See `CLAUDE.md` for detailed examples and guidelines.
+
 ### Testing
 - **Pragmatic approach**: Focus on business logic testing, rapid prototyping friendly
 - **SQLite-based testing**: Fast, simple testing with real database operations
