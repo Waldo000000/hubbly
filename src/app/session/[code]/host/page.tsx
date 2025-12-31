@@ -4,6 +4,8 @@ import { useSession, signIn } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import type { GetSessionResponse } from "@/types/session";
+import type { HostQuestionResponse } from "@/types/question";
+import HostQuestionList from "@/components/host/HostQuestionList";
 
 export default function HostDashboardPage() {
   const { data: session, status } = useSession();
@@ -19,6 +21,8 @@ export default function HostDashboardPage() {
   const [error, setError] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [showCopiedMessage, setShowCopiedMessage] = useState(false);
+  const [questions, setQuestions] = useState<HostQuestionResponse[]>([]);
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
 
   // Fetch session data
   const fetchSessionData = async () => {
@@ -54,15 +58,49 @@ export default function HostDashboardPage() {
     }
   };
 
+  // Fetch questions
+  const fetchQuestions = async () => {
+    try {
+      setIsLoadingQuestions(true);
+      const response = await fetch(`/api/sessions/${code}/host/questions`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Don't set error state for questions - just log it
+        console.error("Failed to load questions:", data);
+        return;
+      }
+
+      setQuestions(data.questions || []);
+    } catch (err) {
+      console.error("Error fetching questions:", err);
+    } finally {
+      setIsLoadingQuestions(false);
+    }
+  };
+
   // Trigger fetch on mount and when auth status changes
   useEffect(() => {
     if (status === "authenticated" && code) {
       fetchSessionData();
+      fetchQuestions();
     } else if (status === "unauthenticated") {
       signIn("google");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, code]);
+
+  // Auto-refresh questions every 3 seconds
+  useEffect(() => {
+    if (status === "authenticated" && code && sessionData) {
+      const interval = setInterval(() => {
+        fetchQuestions();
+      }, 3000);
+
+      return () => clearInterval(interval);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, code, sessionData]);
 
   // Update session status
   const updateSessionStatus = async (
@@ -766,6 +804,17 @@ export default function HostDashboardPage() {
             Create New Session
           </button>
         </div>
+      </div>
+
+      {/* Questions Section */}
+      <div style={{ marginTop: "3rem" }}>
+        {isLoadingQuestions && questions.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "2rem", color: "#666" }}>
+            Loading questions...
+          </div>
+        ) : (
+          <HostQuestionList questions={questions} />
+        )}
       </div>
 
       {/* Error message */}

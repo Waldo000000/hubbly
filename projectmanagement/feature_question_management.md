@@ -53,7 +53,7 @@
 
 **Goal:** Host can view all submitted questions for their session sorted by vote count to understand audience priorities
 
-**Status:** Not Started
+**Status:** Completed
 
 **Tasks:**
 

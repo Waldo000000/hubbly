@@ -294,6 +294,7 @@ Participants are identified by client-generated UUIDs:
 
 - `__tests__/integration/sessions.test.ts` - Session business logic integration tests
 - `__tests__/integration/question-submission.test.ts` - Question submission business logic tests
+- `__tests__/integration/host-questions.test.ts` - Host questions API integration tests
 - `__tests__/utils/session-utils.test.ts` - Session utilities unit tests
 - `__tests__/utils/rate-limit.test.ts` - Rate limiting business logic unit tests
 - `__tests__/utils/request-utils.test.ts` - Request utility (IP extraction) unit tests
@@ -333,19 +334,33 @@ Participants are identified by client-generated UUIDs:
 
 ### Question Management & Audience Participation
 
+**Participant (Public) Components:**
+
 - `src/app/session/[code]/page.tsx` - Participant session view (public, no auth required)
 - `src/components/participant/QuestionSubmitForm.tsx` - Question submission form component
 - `src/components/participant/QuestionList.tsx` - Question list with auto-refresh
 - `src/components/participant/QuestionCard.tsx` - Individual question card with voting
 - `src/components/participant/PulseCheck.tsx` - Pulse check emoji feedback component
-- `src/app/api/sessions/[code]/questions/route.ts` - Question submission (POST) and retrieval (GET) API endpoints
+
+**Host (Authenticated) Components:**
+
+- `src/app/session/[code]/host/page.tsx` - Host dashboard with question management (requires auth)
+- `src/components/host/HostQuestionList.tsx` - Host question list showing all questions sorted by votes
+
+**API Endpoints:**
+
+- `src/app/api/sessions/[code]/questions/route.ts` - Question submission (POST) and retrieval (GET) for participants (approved questions only)
+- `src/app/api/sessions/[code]/host/questions/route.ts` - Question retrieval (GET) for hosts (all questions, all statuses, requires auth)
 - `src/app/api/questions/[id]/vote/route.ts` - Voting endpoints (POST to vote, DELETE to unvote)
 - `src/app/api/questions/[id]/pulse/route.ts` - Pulse check feedback endpoint (POST)
+
+**Utilities & Types:**
+
 - `src/lib/question-utils.ts` - Question validation and business logic
 - `src/lib/participant-id.ts` - Participant UUID generation and validation
 - `src/lib/rate-limit.ts` - In-memory rate limiting for API endpoints
 - `src/lib/request-utils.ts` - Request utility functions (IP extraction)
-- `src/types/question.ts` - TypeScript types for questions, votes, and pulse checks
+- `src/types/question.ts` - TypeScript types for questions, votes, pulse checks, and host responses
 - `src/types/participant.ts` - TypeScript types for participant identity
 
 ### Environment

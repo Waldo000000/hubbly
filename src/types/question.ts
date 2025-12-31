@@ -94,6 +94,15 @@ export interface PulseCheckResponse {
   success: boolean;
 }
 
+/** Host-specific question response (includes all statuses) */
+export type HostQuestionResponse = QuestionResponse;
+
+/** Response for host getting all questions in their session */
+export interface GetHostQuestionsResponse {
+  questions: HostQuestionResponse[];
+  total: number;
+}
+
 /**
  * Client-Side State Types
  */
