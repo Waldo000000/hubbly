@@ -170,8 +170,8 @@ export interface QuestionError {
  */
 
 export const QUESTION_VALIDATION: QuestionValidation = {
-  minLength: 1,
-  maxLength: 100000,
+  minLength: 3,
+  maxLength: 500,
   required: true,
 };
 
@@ -184,8 +184,6 @@ export const QUESTION_STATUS_LABELS: Record<QuestionStatus, string> = {
   dismissed: "Dismissed",
   answered: "Answered",
   being_answered: "Being Answered",
-  answered_live: "Answered Live",
-  answered_via_docs: "Answered via Docs",
 };
 
 /** Pulse check emoji mapping */

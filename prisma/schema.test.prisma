@@ -126,8 +126,6 @@ enum QuestionStatus {
   dismissed
   answered
   being_answered
-  answered_live
-  answered_via_docs
 }
 
 enum PulseCheckFeedbackType {

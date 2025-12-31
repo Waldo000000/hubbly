@@ -22,7 +22,7 @@ const VALID_FEEDBACK_TYPES: PulseCheckFeedbackType[] = [
 ];
 
 // Valid question statuses for pulse check
-const ANSWERED_STATUSES = ["answered", "answered_live", "answered_via_docs"];
+const ANSWERED_STATUSES = ["answered"];
 
 export async function POST(
   req: NextRequest,

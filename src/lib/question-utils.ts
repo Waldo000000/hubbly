@@ -32,6 +32,11 @@ export function validateQuestionInput(input: {
       field: "content",
       message: "Question content is required",
     });
+  } else if (input.content.trim().length < QUESTION_VALIDATION.minLength) {
+    errors.push({
+      field: "content",
+      message: `Question must be at least ${QUESTION_VALIDATION.minLength} characters`,
+    });
   } else if (input.content.trim().length > QUESTION_VALIDATION.maxLength) {
     errors.push({
       field: "content",

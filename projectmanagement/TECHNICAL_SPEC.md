@@ -79,7 +79,7 @@ questions:
 - author_name: String (Optional, for anonymous questions)
 - content: Text
 - vote_count: Integer (Default: 0)
-- status: Enum ('pending', 'approved', 'dismissed', 'answered')
+- status: Enum ('pending', 'approved', 'dismissed', 'answered', 'being_answered')
 - is_anonymous: Boolean (Default: true)
 - created_at: DateTime
 - updated_at: DateTime

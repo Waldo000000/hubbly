@@ -768,7 +768,7 @@ describe("Question Submission and Voting Business Logic Integration Tests", () =
           sessionId: testSession.id,
           participantId: uuidv4(),
           content: "Question 1",
-          status: "answered_live",
+          status: "answered",
           voteCount: 0,
           isAnonymous: false,
         },
@@ -779,7 +779,7 @@ describe("Question Submission and Voting Business Logic Integration Tests", () =
           sessionId: testSession.id,
           participantId: uuidv4(),
           content: "Question 2",
-          status: "answered_via_docs",
+          status: "answered",
           voteCount: 0,
           isAnonymous: false,
         },
@@ -866,7 +866,7 @@ describe("Question Submission and Voting Business Logic Integration Tests", () =
       const participant = uuidv4();
 
       // Create questions with different statuses
-      const validStatuses = ["answered", "answered_live", "answered_via_docs"];
+      const validStatuses = ["answered"];
       const invalidStatuses = [
         "pending",
         "approved",

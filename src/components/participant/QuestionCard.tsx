@@ -68,18 +68,6 @@ export default function QuestionCard({
             Being Answered
           </span>
         );
-      case "answered_live":
-        return (
-          <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
-            Answered Live
-          </span>
-        );
-      case "answered_via_docs":
-        return (
-          <span className="px-2 py-1 rounded text-xs font-medium bg-purple-100 text-purple-800">
-            Answered via Docs
-          </span>
-        );
       case "answered":
         return (
           <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
@@ -96,11 +84,7 @@ export default function QuestionCard({
     : question.authorName || "Anonymous";
 
   // Check if question has answered status for pulse check
-  const isAnswered = [
-    "answered",
-    "answered_live",
-    "answered_via_docs",
-  ].includes(question.status);
+  const isAnswered = ["answered"].includes(question.status);
 
   return (
     <div className="w-full bg-white rounded-lg shadow-md border-2 border-gray-200 p-5 hover:shadow-lg transition-shadow">
@@ -119,7 +103,9 @@ export default function QuestionCard({
           >
             <span className="text-2xl leading-none">▲</span>
             <span className="text-sm font-bold mt-1">{question.voteCount}</span>
-            <span className="text-xs mt-1">{isVotedByMe ? "Voted" : "Vote"}</span>
+            <span className="text-xs mt-1">
+              {isVotedByMe ? "Voted" : "Vote"}
+            </span>
           </button>
         </div>
 

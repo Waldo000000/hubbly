@@ -54,18 +54,21 @@ Never push without verifying the build passes locally. Use `build:local`, not `b
 **ABSOLUTE RULE**: NEVER automatically modify, overwrite, or suggest changes to `.env.local` without explicit user permission.
 
 **Why**:
+
 - Contains user's personal credentials (Google OAuth, API keys)
 - Contains production secrets and tokens
 - User has manually configured sensitive values
 - Accidental overwrites cause loss of irreplaceable credentials
 
 **Correct Approach**:
+
 1. ✅ If config changes are needed, ask user first: "Should I update .env.local with X?"
 2. ✅ Suggest changes user can make manually
 3. ✅ Provide example values in `.env.example` instead
 4. ✅ Document required variables in README.md
 
 **Incorrect Approach**:
+
 1. ❌ NEVER use Write tool on `.env.local`
 2. ❌ NEVER overwrite existing values
 3. ❌ NEVER assume values can be regenerated
@@ -80,22 +83,26 @@ Never push without verifying the build passes locally. Use `build:local`, not `b
 **ABSOLUTE RULE**: All temporary files MUST be written to the `.tmp/` directory, which is gitignored.
 
 **Why**:
+
 - Prevents accidental commits of temporary/scratch files
 - Keeps repository clean
 - Avoids creating files like `nul`, `temp.txt`, etc. in tracked directories
 
 **Correct Approach**:
+
 1. ✅ Always write temp files to `.tmp/` directory: `.tmp/scratch.txt`
 2. ✅ Create `.tmp/` directory if it doesn't exist
 3. ✅ Use descriptive names: `.tmp/build-output.log`, `.tmp/test-data.json`
 4. ✅ Clean up temp files when done (optional, as `.tmp/` is gitignored)
 
 **Incorrect Approach**:
+
 1. ❌ NEVER write temp files to project root (e.g., `./nul`, `./temp.txt`)
 2. ❌ NEVER write temp files to tracked directories (e.g., `src/temp.js`)
 3. ❌ NEVER use ambiguous filenames that might conflict with real files
 
 **Examples**:
+
 ```bash
 # Good
 mkdir -p .tmp
@@ -190,30 +197,34 @@ Playwright MCP enables automated browser testing and visual debugging during dev
 
 **Configuration:**
 This project includes a `.mcp.json` file with Playwright MCP configured as a **project-scoped server**. This means:
+
 - All team members automatically get access to Playwright when using Claude Code
 - Configuration is version controlled
 - Claude Code will prompt for approval on first use
 - No manual installation needed
 
 **Available in Claude Code sessions for:**
+
 - Automatic screenshot capture of localhost:3000
 - Visual verification of styling changes
 - Frontend debugging without manual screenshots
 - Interactive testing of user flows
 
 **Common commands:**
+
 ```typescript
 // Take screenshot of specific route
-"Use Playwright to navigate to localhost:3000/session/ABC123 and take a screenshot"
+"Use Playwright to navigate to localhost:3000/session/ABC123 and take a screenshot";
 
 // Test user interactions
-"Click the vote button and show me what happens"
+"Click the vote button and show me what happens";
 
 // Verify styling
-"Open the question list page and capture what the cards look like"
+"Open the question list page and capture what the cards look like";
 ```
 
 **Manual verification:**
+
 ```bash
 # Check Playwright is available
 claude mcp list
@@ -223,6 +234,7 @@ claude mcp reset-project-choices
 ```
 
 **Resources:**
+
 - [Playwright MCP Server](https://github.com/microsoft/playwright-mcp)
 - [Using with Claude Code](https://til.simonwillison.net/claude-code/playwright-mcp-claude-code)
 - [MCP Documentation](https://code.claude.com/docs/en/mcp)
@@ -234,10 +246,8 @@ claude mcp reset-project-choices
 - `pending` - Question submitted, awaiting host approval
 - `approved` - Question approved and visible to participants
 - `dismissed` - Question dismissed by host (not visible)
-- `answered` - Question marked as answered (generic)
+- `answered` - Question marked as answered
 - `being_answered` - Question currently being addressed
-- `answered_live` - Question answered during live session
-- `answered_via_docs` - Question answered in documentation
 
 **Pulse Check Feedback:**
 
