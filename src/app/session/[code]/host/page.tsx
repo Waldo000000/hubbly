@@ -79,6 +79,15 @@ export default function HostDashboardPage() {
     }
   };
 
+  // Handle question update from HostQuestionList
+  const handleQuestionUpdate = (updatedQuestion: HostQuestionResponse) => {
+    setQuestions((prevQuestions) =>
+      prevQuestions.map((q) =>
+        q.id === updatedQuestion.id ? updatedQuestion : q,
+      ),
+    );
+  };
+
   // Trigger fetch on mount and when auth status changes
   useEffect(() => {
     if (status === "authenticated" && code) {
@@ -813,7 +822,10 @@ export default function HostDashboardPage() {
             Loading questions...
           </div>
         ) : (
-          <HostQuestionList questions={questions} />
+          <HostQuestionList
+            questions={questions}
+            onQuestionUpdate={handleQuestionUpdate}
+          />
         )}
       </div>
 

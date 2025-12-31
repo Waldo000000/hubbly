@@ -295,6 +295,7 @@ Participants are identified by client-generated UUIDs:
 - `__tests__/integration/sessions.test.ts` - Session business logic integration tests
 - `__tests__/integration/question-submission.test.ts` - Question submission business logic tests
 - `__tests__/integration/host-questions.test.ts` - Host questions API integration tests
+- `__tests__/integration/host-question-status.test.ts` - Question status update API integration tests
 - `__tests__/utils/session-utils.test.ts` - Session utilities unit tests
 - `__tests__/utils/rate-limit.test.ts` - Rate limiting business logic unit tests
 - `__tests__/utils/request-utils.test.ts` - Request utility (IP extraction) unit tests
@@ -345,12 +346,13 @@ Participants are identified by client-generated UUIDs:
 **Host (Authenticated) Components:**
 
 - `src/app/session/[code]/host/page.tsx` - Host dashboard with question management (requires auth)
-- `src/components/host/HostQuestionList.tsx` - Host question list showing all questions sorted by votes
+- `src/components/host/HostQuestionList.tsx` - Host question list showing all questions sorted by votes with status update controls
 
 **API Endpoints:**
 
 - `src/app/api/sessions/[code]/questions/route.ts` - Question submission (POST) and retrieval (GET) for participants (approved questions only)
 - `src/app/api/sessions/[code]/host/questions/route.ts` - Question retrieval (GET) for hosts (all questions, all statuses, requires auth)
+- `src/app/api/questions/[id]/route.ts` - Question status update (PATCH) for hosts (being_answered, answered)
 - `src/app/api/questions/[id]/vote/route.ts` - Voting endpoints (POST to vote, DELETE to unvote)
 - `src/app/api/questions/[id]/pulse/route.ts` - Pulse check feedback endpoint (POST)
 

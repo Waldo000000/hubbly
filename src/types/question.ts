@@ -50,6 +50,12 @@ export interface PulseCheckRequest {
   feedback: PulseCheckFeedbackType;
 }
 
+/** Update question status (host only) */
+export interface UpdateQuestionStatusRequest {
+  /** New status (being_answered or answered) */
+  status: "being_answered" | "answered";
+}
+
 /**
  * API Response Types
  */
@@ -92,6 +98,12 @@ export interface PulseCheckResponse {
   questionId: string;
   feedback: PulseCheckFeedbackType;
   success: boolean;
+}
+
+/** Response after updating question status */
+export interface UpdateQuestionStatusResponse {
+  question: QuestionResponse;
+  message: string;
 }
 
 /** Host-specific question response (includes all statuses) */

@@ -1,13 +1,60 @@
 "use client";
 
+import { useState } from "react";
 import type { HostQuestionResponse } from "@/types/question";
 import { QUESTION_STATUS_LABELS } from "@/types/question";
 
 interface HostQuestionListProps {
   questions: HostQuestionResponse[];
+  onQuestionUpdate?: (updatedQuestion: HostQuestionResponse) => void;
 }
 
-export default function HostQuestionList({ questions }: HostQuestionListProps) {
+export default function HostQuestionList({
+  questions,
+  onQuestionUpdate,
+}: HostQuestionListProps) {
+  const [updatingQuestionId, setUpdatingQuestionId] = useState<string | null>(
+    null,
+  );
+  const [error, setError] = useState<string | null>(null);
+
+  // Handle status update
+  const handleStatusUpdate = async (
+    questionId: string,
+    newStatus: "being_answered" | "answered",
+  ) => {
+    setUpdatingQuestionId(questionId);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/questions/${questionId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || "Failed to update question status");
+        setUpdatingQuestionId(null);
+        return;
+      }
+
+      // Call parent callback if provided
+      if (onQuestionUpdate) {
+        onQuestionUpdate(data.question);
+      }
+
+      setUpdatingQuestionId(null);
+    } catch {
+      setError("An error occurred while updating the question");
+      setUpdatingQuestionId(null);
+    }
+  };
+
   // Empty state
   if (questions.length === 0) {
     return (
@@ -71,6 +118,12 @@ export default function HostQuestionList({ questions }: HostQuestionListProps) {
         </p>
       </div>
 
+      {error && (
+        <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4 text-red-800">
+          {error}
+        </div>
+      )}
+
       {questions.map((question) => {
         const authorDisplay = question.isAnonymous
           ? "Anonymous"
@@ -115,6 +168,47 @@ export default function HostQuestionList({ questions }: HostQuestionListProps) {
                 <p className="text-gray-900 text-base leading-relaxed break-words">
                   {question.content}
                 </p>
+
+                {/* Action buttons */}
+                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200">
+                  <span className="text-sm text-gray-600 font-medium mr-2">
+                    Mark as:
+                  </span>
+                  <button
+                    onClick={() =>
+                      handleStatusUpdate(question.id, "being_answered")
+                    }
+                    disabled={
+                      updatingQuestionId === question.id ||
+                      question.status === "being_answered"
+                    }
+                    className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                      question.status === "being_answered"
+                        ? "bg-blue-100 text-blue-800 cursor-not-allowed"
+                        : "bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200"
+                    } ${updatingQuestionId === question.id ? "opacity-50 cursor-wait" : ""}`}
+                  >
+                    {updatingQuestionId === question.id
+                      ? "Updating..."
+                      : "Being Answered"}
+                  </button>
+                  <button
+                    onClick={() => handleStatusUpdate(question.id, "answered")}
+                    disabled={
+                      updatingQuestionId === question.id ||
+                      question.status === "answered"
+                    }
+                    className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                      question.status === "answered"
+                        ? "bg-green-100 text-green-800 cursor-not-allowed"
+                        : "bg-green-50 text-green-700 hover:bg-green-100 border border-green-200"
+                    } ${updatingQuestionId === question.id ? "opacity-50 cursor-wait" : ""}`}
+                  >
+                    {updatingQuestionId === question.id
+                      ? "Updating..."
+                      : "Answered"}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
