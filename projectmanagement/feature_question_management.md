@@ -160,7 +160,7 @@
 
 **Goal:** Participants can provide emoji feedback (💚/💛/🔴) on answered questions, and pulse check stats are visible to both hosts and participants
 
-**Status:** Not Started
+**Status:** Completed
 
 **Tasks:**
 

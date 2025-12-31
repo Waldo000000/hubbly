@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { QuestionResponse } from "@/types/question";
+import { PULSE_CHECK_EMOJIS } from "@/types/question";
 import PulseCheck from "./PulseCheck";
 
 interface QuestionCardProps {
@@ -132,6 +133,30 @@ export default function QuestionCard({
                 participantId={participantId}
                 sessionCode={sessionCode}
               />
+              {/* Display pulse check stats */}
+              {question.pulseCheckStats && (
+                <div className="mt-2 flex items-center gap-3 text-sm">
+                  <span className="text-gray-600 font-medium">Feedback:</span>
+                  <span className="flex items-center gap-1">
+                    {PULSE_CHECK_EMOJIS.helpful}{" "}
+                    <span className="font-medium">
+                      {question.pulseCheckStats.helpful}
+                    </span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    {PULSE_CHECK_EMOJIS.neutral}{" "}
+                    <span className="font-medium">
+                      {question.pulseCheckStats.neutral}
+                    </span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    {PULSE_CHECK_EMOJIS.not_helpful}{" "}
+                    <span className="font-medium">
+                      {question.pulseCheckStats.not_helpful}
+                    </span>
+                  </span>
+                </div>
+              )}
             </div>
           )}
         </div>

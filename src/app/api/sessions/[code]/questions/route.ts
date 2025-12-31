@@ -172,7 +172,6 @@ export async function GET(
   const sessionCode = code.toUpperCase();
 
   try {
-
     // Verify session exists
     const session = await prisma.qaSession.findUnique({
       where: { code: sessionCode },
@@ -188,28 +187,56 @@ export async function GET(
       );
     }
 
-    // Retrieve approved questions sorted by vote count (desc) and creation date (desc)
+    // Retrieve approved and answered questions sorted by vote count (desc) and creation date (desc)
     const questions = await prisma.question.findMany({
       where: {
         sessionId: session.id,
-        status: "approved",
+        status: {
+          in: ["approved", "answered", "being_answered"],
+        },
       },
       orderBy: [{ voteCount: "desc" }, { createdAt: "desc" }],
+      include: {
+        pulseCheckFeedback: {
+          select: {
+            feedback: true,
+          },
+        },
+      },
     });
 
     const response: GetQuestionsResponse = {
-      questions: questions.map((q) => ({
-        id: q.id,
-        sessionId: q.sessionId,
-        participantId: q.participantId || undefined,
-        authorName: q.authorName || undefined,
-        content: q.content,
-        voteCount: q.voteCount,
-        status: q.status,
-        isAnonymous: q.isAnonymous,
-        createdAt: q.createdAt.toISOString(),
-        updatedAt: q.updatedAt.toISOString(),
-      })),
+      questions: questions.map((q) => {
+        // Calculate pulse check stats for answered questions
+        const pulseCheckStats =
+          q.status === "answered"
+            ? {
+                helpful: q.pulseCheckFeedback.filter(
+                  (f) => f.feedback === "helpful",
+                ).length,
+                neutral: q.pulseCheckFeedback.filter(
+                  (f) => f.feedback === "neutral",
+                ).length,
+                not_helpful: q.pulseCheckFeedback.filter(
+                  (f) => f.feedback === "not_helpful",
+                ).length,
+              }
+            : undefined;
+
+        return {
+          id: q.id,
+          sessionId: q.sessionId,
+          participantId: q.participantId || undefined,
+          authorName: q.authorName || undefined,
+          content: q.content,
+          voteCount: q.voteCount,
+          status: q.status,
+          isAnonymous: q.isAnonymous,
+          createdAt: q.createdAt.toISOString(),
+          updatedAt: q.updatedAt.toISOString(),
+          pulseCheckStats,
+        };
+      }),
       total: questions.length,
     };
 

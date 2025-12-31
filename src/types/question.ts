@@ -60,6 +60,13 @@ export interface UpdateQuestionStatusRequest {
  * API Response Types
  */
 
+/** Pulse check aggregated statistics */
+export interface PulseCheckStats {
+  helpful: number;
+  neutral: number;
+  not_helpful: number;
+}
+
 /** Question data returned from API */
 export interface QuestionResponse {
   id: string;
@@ -72,6 +79,7 @@ export interface QuestionResponse {
   isAnonymous: boolean;
   createdAt: string;
   updatedAt: string;
+  pulseCheckStats?: PulseCheckStats;
 }
 
 /** Response after submitting a question */

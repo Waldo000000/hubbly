@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { HostQuestionResponse } from "@/types/question";
-import { QUESTION_STATUS_LABELS } from "@/types/question";
+import { QUESTION_STATUS_LABELS, PULSE_CHECK_EMOJIS } from "@/types/question";
 
 interface HostQuestionListProps {
   questions: HostQuestionResponse[];
@@ -168,6 +168,39 @@ export default function HostQuestionList({
                 <p className="text-gray-900 text-base leading-relaxed break-words">
                   {question.content}
                 </p>
+
+                {/* Pulse check stats for answered questions */}
+                {question.status === "answered" && question.pulseCheckStats && (
+                  <div className="mt-3 flex items-center gap-3 text-sm bg-gray-50 rounded-lg p-3">
+                    <span className="text-gray-600 font-medium">Feedback:</span>
+                    <span className="flex items-center gap-1">
+                      {PULSE_CHECK_EMOJIS.helpful}{" "}
+                      <span className="font-medium">
+                        {question.pulseCheckStats.helpful}
+                      </span>
+                    </span>
+                    <span className="flex items-center gap-1">
+                      {PULSE_CHECK_EMOJIS.neutral}{" "}
+                      <span className="font-medium">
+                        {question.pulseCheckStats.neutral}
+                      </span>
+                    </span>
+                    <span className="flex items-center gap-1">
+                      {PULSE_CHECK_EMOJIS.not_helpful}{" "}
+                      <span className="font-medium">
+                        {question.pulseCheckStats.not_helpful}
+                      </span>
+                    </span>
+                    {question.pulseCheckStats.helpful +
+                      question.pulseCheckStats.neutral +
+                      question.pulseCheckStats.not_helpful ===
+                      0 && (
+                      <span className="text-gray-500 italic ml-2">
+                        No feedback yet
+                      </span>
+                    )}
+                  </div>
+                )}
 
                 {/* Action buttons */}
                 <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200">
