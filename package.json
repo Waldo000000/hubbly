@@ -4,19 +4,23 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/build.js",
-    "build:local": "next build",
-    "build:vercel": "npm run reset-db && npx prisma generate && next build",
-    "reset-db": "node scripts/reset-db.cjs",
+    "build": "next build",
+    "build:production": "npm run db:migrate && npm run build",
+    "build:preview": "npm run db:reset && npm run build",
+    "build:local": "npm run build",
     "start": "next start",
     "lint": "next lint",
+    "db:migrate": "npx prisma migrate deploy",
+    "db:reset": "node scripts/db-reset.cjs",
+    "db:seed": "npx prisma db seed",
+    "db:generate": "npx prisma generate",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:integration": "jest __tests__/integration",
     "test:components": "jest __tests__/components",
     "test:unit": "jest __tests__/utils",
-    "postinstall": "prisma generate"
+    "postinstall": "npm run db:generate"
   },
   "prisma": {
     "seed": "node prisma/seed.js"

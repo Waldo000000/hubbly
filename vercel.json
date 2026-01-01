@@ -1,5 +1,5 @@
 {
-  "buildCommand": "npm run build:vercel",
+  "buildCommand": "bash vercel.sh",
   "installCommand": "npm install",
   "framework": "nextjs",
   "functions": {
@@ -9,10 +9,5 @@
   },
   "env": {
     "NODE_ENV": "production"
-  },
-  "build": {
-    "env": {
-      "ENABLE_DB_RESET": "true"
-    }
   }
 }
