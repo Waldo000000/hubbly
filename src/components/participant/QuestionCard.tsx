@@ -65,8 +65,8 @@ export default function QuestionCard({
     switch (question.status) {
       case "being_answered":
         return (
-          <span className="px-2 py-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
-            Being Answered
+          <span className="px-3 py-1.5 rounded-md text-sm font-semibold bg-blue-600 text-white shadow-sm">
+            🎯 Currently Being Answered
           </span>
         );
       case "answered":
@@ -87,8 +87,17 @@ export default function QuestionCard({
   // Check if question has answered status for pulse check
   const isAnswered = ["answered"].includes(question.status);
 
+  // Check if this question is currently being answered
+  const isBeingAnswered = question.status === "being_answered";
+
   return (
-    <div className="w-full bg-white rounded-lg shadow-md border-2 border-gray-200 p-5 hover:shadow-lg transition-shadow">
+    <div
+      className={`w-full rounded-lg shadow-md border-2 p-5 hover:shadow-lg transition-all ${
+        isBeingAnswered
+          ? "bg-blue-50 border-blue-500 border-3 ring-2 ring-blue-200"
+          : "bg-white border-gray-200"
+      }`}
+    >
       <div className="flex flex-row gap-4 items-start">
         {/* Vote button - left side */}
         <div className="flex flex-col items-center gap-1 flex-shrink-0">

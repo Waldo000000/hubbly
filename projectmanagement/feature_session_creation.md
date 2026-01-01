@@ -114,7 +114,7 @@
 
 **Goal:** Build React hooks for session CRUD operations (authentication hooks already exist via NextAuth)
 
-**Status:** Not Started
+**Status:** Not Started (not needed)
 
 **Tasks:**
 

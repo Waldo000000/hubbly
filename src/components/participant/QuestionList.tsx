@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import type { GetQuestionsResponse } from "@/types/question";
+import { sortQuestions } from "@/lib/question-utils";
 import QuestionCard from "./QuestionCard";
 
 interface QuestionListProps {
@@ -19,6 +20,12 @@ export default function QuestionList({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [votedQuestions, setVotedQuestions] = useState<Set<string>>(new Set());
+
+  // Track refs for each question card for auto-scroll
+  const questionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  // Track the ID of the question currently being answered
+  const prevBeingAnsweredId = useRef<string | null>(null);
 
   // Load voted questions from localStorage
   useEffect(() => {
@@ -70,6 +77,32 @@ export default function QuestionList({
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionCode]);
+
+  // Auto-scroll to "being_answered" question when it changes
+  useEffect(() => {
+    const beingAnsweredQuestion = questions.find(
+      (q) => q.status === "being_answered",
+    );
+    const currentBeingAnsweredId = beingAnsweredQuestion?.id || null;
+
+    // If there's a new being_answered question (and it's different from previous)
+    if (
+      currentBeingAnsweredId &&
+      currentBeingAnsweredId !== prevBeingAnsweredId.current
+    ) {
+      const element = questionRefs.current.get(currentBeingAnsweredId);
+      if (element) {
+        // Scroll to element with smooth animation
+        element.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }
+    }
+
+    // Update the previous being_answered ID
+    prevBeingAnsweredId.current = currentBeingAnsweredId;
+  }, [questions]);
 
   // Handle vote change
   const handleVoteChange = (questionId: string, voted: boolean) => {
@@ -140,6 +173,9 @@ export default function QuestionList({
     );
   }
 
+  // Sort questions: being_answered at top, then by votes, then by creation time
+  const sortedQuestions = sortQuestions(questions);
+
   return (
     <div className="bg-white rounded-lg shadow-sm p-6">
       <div className="flex items-center justify-between mb-4">
@@ -150,15 +186,25 @@ export default function QuestionList({
       </div>
 
       <div className="flex flex-col gap-4">
-        {questions.map((question) => (
-          <QuestionCard
+        {sortedQuestions.map((question) => (
+          <div
             key={question.id}
-            question={question}
-            participantId={participantId}
-            sessionCode={sessionCode}
-            isVotedByMe={votedQuestions.has(question.id)}
-            onVoteChange={handleVoteChange}
-          />
+            ref={(el) => {
+              if (el) {
+                questionRefs.current.set(question.id, el);
+              } else {
+                questionRefs.current.delete(question.id);
+              }
+            }}
+          >
+            <QuestionCard
+              question={question}
+              participantId={participantId}
+              sessionCode={sessionCode}
+              isVotedByMe={votedQuestions.has(question.id)}
+              onVoteChange={handleVoteChange}
+            />
+          </div>
         ))}
       </div>
     </div>

@@ -296,6 +296,7 @@ Participants are identified by client-generated UUIDs:
 - `__tests__/integration/question-submission.test.ts` - Question submission business logic tests
 - `__tests__/integration/host-questions.test.ts` - Host questions API integration tests
 - `__tests__/integration/host-question-status.test.ts` - Question status update API integration tests
+- `__tests__/integration/being-answered-highlight.test.ts` - "Being answered" question highlighting and multi-level sorting tests
 - `__tests__/utils/session-utils.test.ts` - Session utilities unit tests
 - `__tests__/utils/rate-limit.test.ts` - Rate limiting business logic unit tests
 - `__tests__/utils/request-utils.test.ts` - Request utility (IP extraction) unit tests
@@ -358,7 +359,7 @@ Participants are identified by client-generated UUIDs:
 
 **Utilities & Types:**
 
-- `src/lib/question-utils.ts` - Question validation and business logic
+- `src/lib/question-utils.ts` - Question validation, multi-level sorting (being_answered → votes → createdAt), and business logic
 - `src/lib/participant-id.ts` - Participant UUID generation and validation
 - `src/lib/rate-limit.ts` - In-memory rate limiting for API endpoints
 - `src/lib/request-utils.ts` - Request utility functions (IP extraction)

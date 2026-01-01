@@ -3,7 +3,11 @@
  */
 
 import { isValidParticipantId } from "./participant-id";
-import { QUESTION_VALIDATION, AUTHOR_NAME_MAX_LENGTH } from "@/types/question";
+import {
+  QUESTION_VALIDATION,
+  AUTHOR_NAME_MAX_LENGTH,
+  QuestionResponse,
+} from "@/types/question";
 
 export interface QuestionValidationResult {
   isValid: boolean;
@@ -71,4 +75,36 @@ export function validateQuestionInput(input: {
     isValid: errors.length === 0,
     errors,
   };
+}
+
+/**
+ * Sort questions with multi-level priority:
+ * 1. Primary: Questions with status "being_answered" at top
+ * 2. Secondary: Sort by vote count descending (highest votes first)
+ * 3. Tertiary: Sort by creation time ascending (older questions first for same votes)
+ *
+ * This ensures:
+ * - Currently being answered question is always at the top
+ * - Popular questions appear higher in the list
+ * - Newly-added questions (0 votes) appear at the bottom
+ *
+ * @param questions - Array of questions to sort
+ * @returns Sorted array (original array is not modified)
+ */
+export function sortQuestions<T extends QuestionResponse>(questions: T[]): T[] {
+  return [...questions].sort((a, b) => {
+    // Primary sort: being_answered always at top
+    if (a.status === "being_answered" && b.status !== "being_answered")
+      return -1;
+    if (b.status === "being_answered" && a.status !== "being_answered")
+      return 1;
+
+    // Secondary sort: higher vote count first
+    if (b.voteCount !== a.voteCount) {
+      return b.voteCount - a.voteCount;
+    }
+
+    // Tertiary sort: older questions first (for same vote count, newer at bottom)
+    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+  });
 }

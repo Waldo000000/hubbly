@@ -214,35 +214,55 @@
 - Submit feedback from another participant (different participantId)
 - Verify both host and participant views update to show "💚 2"
 
-## User Story 4: Participants See Highlighted "Being Answered" Question
+## User Story 4: Highlight "Being Answered" Question (Participants and Host)
 
-**Goal:** When host marks a question as "being_answered", participants see it highlighted in their question list so they know what's currently being addressed
+**Goal:** When host marks a question as "being_answered", both participants and host see it prominently highlighted and positioned at the top of the question list
 
-**Status:** Not Started
+**Status:** Completed
+
+**Related Bugs:** Fixed Bug #2, Bug #2b, Bug #3 from `projectmanagement/BUGS.md`
 
 **Tasks:**
 
-1. Update `src/components/participant/QuestionList.tsx` component
+1. Implement multi-level sorting logic for questions (fixes Bug #2 and Bug #3)
+   - Update sorting to use three-level hierarchy:
+     1. Primary: Questions with status "being_answered" always at top
+     2. Secondary: Sort by voteCount DESC (highest votes first)
+     3. Tertiary: Sort by createdAt ASC (older questions first for same vote count)
+   - Result: being_answered at top, then voted questions, then new questions (0 votes) at bottom
+2. Update `src/components/participant/QuestionList.tsx` component
+   - Implement new multi-level sorting logic
    - Check if any question has status "being_answered"
-   - If found, apply special highlight styling to that question card
    - Move "being_answered" question to the top of the list (above other questions regardless of vote count)
-   - Add visual indicator: border, background color, icon, or "Currently Being Answered" badge
-2. Update `src/components/participant/QuestionCard.tsx` component
+   - Apply sorting: being_answered > votes > creation time
+3. Update `src/components/participant/QuestionCard.tsx` component (fixes Bug #2b)
    - Accept `isBeingAnswered` prop to apply highlight styles
-   - Add prominent visual styling: blue border, light blue background, or pulsing animation
-   - Add "Currently Being Answered" badge or label at the top of the card
+   - Add prominent visual styling with pleasant blue background:
+     - Card background: light blue (e.g., bg-blue-50 or bg-blue-100)
+     - Border: thicker blue border (e.g., border-2 border-blue-500)
+     - Badge: "Currently Being Answered" label prominent at top of card
    - Make it stand out clearly from other questions
-3. Add auto-scroll behavior in `src/components/participant/QuestionList.tsx`
+   - Use pleasant, non-distracting colors
+4. Update `src/components/host/HostQuestionList.tsx` component (fixes Bug #2 for host view)
+   - Implement same multi-level sorting logic as participant view
+   - Ensure "being_answered" questions appear at top in host dashboard
+   - Apply same prominent blue highlighting for consistency
+   - Host should see the same visual prominence as participants
+5. Add auto-scroll behavior in `src/components/participant/QuestionList.tsx`
    - When a question transitions to "being_answered" status, automatically scroll it into view
    - Use smooth scroll animation for better UX
    - Only scroll if the question is not already visible on screen
-4. Write integration test in `__tests__/integration/being-answered-highlight.test.ts`
+6. Write integration test in `__tests__/integration/being-answered-highlight.test.ts`
    - Test that question with being_answered status is identified correctly
-   - Test participant view shows highlighted question
+   - Test participant view shows highlighted question at top
+   - Test host view shows highlighted question at top
+   - Test multi-level sorting: being_answered > votes > creation time
+   - Test newly-added questions (0 votes) appear at bottom
    - Test only one question can be "being_answered" at a time (optional business logic)
-5. Update existing auto-refresh logic in participant view
+7. Update existing auto-refresh logic in participant and host views
    - Ensure questions re-render when status changes
    - Verify highlight appears/disappears in real-time when host updates status
+   - Verify sorting is maintained after auto-refresh
 
 **Acceptance Criteria:**
 

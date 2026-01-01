@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { HostQuestionResponse } from "@/types/question";
 import { QUESTION_STATUS_LABELS, PULSE_CHECK_EMOJIS } from "@/types/question";
+import { sortQuestions } from "@/lib/question-utils";
 
 interface HostQuestionListProps {
   questions: HostQuestionResponse[];
@@ -107,6 +108,9 @@ export default function HostQuestionList({
     return `${diffDays}d ago`;
   };
 
+  // Sort questions: being_answered at top, then by votes, then by creation time
+  const sortedQuestions = sortQuestions(questions);
+
   return (
     <div className="w-full max-w-4xl mx-auto space-y-4">
       <div className="mb-4">
@@ -114,7 +118,7 @@ export default function HostQuestionList({
           Questions ({questions.length})
         </h2>
         <p className="text-gray-600 text-sm mt-1">
-          Sorted by vote count (highest first)
+          Currently being answered shown first, then sorted by votes
         </p>
       </div>
 
@@ -124,7 +128,8 @@ export default function HostQuestionList({
         </div>
       )}
 
-      {questions.map((question) => {
+      {sortedQuestions.map((question) => {
+        const isBeingAnswered = question.status === "being_answered";
         const authorDisplay = question.isAnonymous
           ? "Anonymous"
           : question.authorName || "Anonymous";
@@ -132,7 +137,11 @@ export default function HostQuestionList({
         return (
           <div
             key={question.id}
-            className="bg-white rounded-lg shadow-md border-2 border-gray-200 p-5 hover:shadow-lg transition-shadow"
+            className={`rounded-lg shadow-md border-2 p-5 hover:shadow-lg transition-all ${
+              isBeingAnswered
+                ? "bg-blue-50 border-blue-500 ring-2 ring-blue-200"
+                : "bg-white border-gray-200"
+            }`}
           >
             <div className="flex flex-row gap-4 items-start">
               {/* Vote count - left side with prominent display */}
@@ -154,11 +163,17 @@ export default function HostQuestionList({
                   <span className="text-sm font-medium text-gray-700">
                     {authorDisplay}
                   </span>
-                  <span
-                    className={`px-2 py-1 rounded text-xs font-medium ${getStatusBadgeClass(question.status)}`}
-                  >
-                    {QUESTION_STATUS_LABELS[question.status]}
-                  </span>
+                  {isBeingAnswered ? (
+                    <span className="px-3 py-1.5 rounded-md text-sm font-semibold bg-blue-600 text-white shadow-sm">
+                      🎯 Currently Being Answered
+                    </span>
+                  ) : (
+                    <span
+                      className={`px-2 py-1 rounded text-xs font-medium ${getStatusBadgeClass(question.status)}`}
+                    >
+                      {QUESTION_STATUS_LABELS[question.status]}
+                    </span>
+                  )}
                   <span className="text-xs text-gray-500 ml-auto">
                     {formatTimestamp(question.createdAt)}
                   </span>
