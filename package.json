@@ -10,7 +10,7 @@
     "build:local": "npm run build",
     "start": "next start",
     "lint": "next lint",
-    "db:migrate": "npx prisma migrate deploy",
+    "db:migrate": "node scripts/db-migrate.cjs",
     "db:reset": "node scripts/db-reset.cjs",
     "db:seed": "npx prisma db seed",
     "db:generate": "npx prisma generate",

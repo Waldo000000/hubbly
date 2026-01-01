@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { getDatabaseConfig } from "../../lib/database-config";
+import { getDatabaseConfig } from "../../lib/database-config.js";
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
