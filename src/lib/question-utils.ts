@@ -80,13 +80,15 @@ export function validateQuestionInput(input: {
 /**
  * Sort questions with multi-level priority:
  * 1. Primary: Questions with status "being_answered" at top
- * 2. Secondary: Sort by vote count descending (highest votes first)
- * 3. Tertiary: Sort by creation time ascending (older questions first for same votes)
+ * 2. Secondary: Questions with status "answered" at bottom
+ * 3. Tertiary: Sort remaining questions by vote count descending (highest votes first)
+ * 4. Quaternary: Sort by creation time ascending (older questions first for same votes)
  *
  * This ensures:
  * - Currently being answered question is always at the top
- * - Popular questions appear higher in the list
- * - Newly-added questions (0 votes) appear at the bottom
+ * - Answered questions are always at the bottom
+ * - Popular unanswered questions appear higher in the list
+ * - Newly-added questions (0 votes) appear at the bottom of unanswered questions
  *
  * @param questions - Array of questions to sort
  * @returns Sorted array (original array is not modified)
@@ -99,12 +101,16 @@ export function sortQuestions<T extends QuestionResponse>(questions: T[]): T[] {
     if (b.status === "being_answered" && a.status !== "being_answered")
       return 1;
 
-    // Secondary sort: higher vote count first
+    // Secondary sort: answered questions always at bottom
+    if (a.status === "answered" && b.status !== "answered") return 1;
+    if (b.status === "answered" && a.status !== "answered") return -1;
+
+    // Tertiary sort: higher vote count first (for non-answered questions)
     if (b.voteCount !== a.voteCount) {
       return b.voteCount - a.voteCount;
     }
 
-    // Tertiary sort: older questions first (for same vote count, newer at bottom)
+    // Quaternary sort: older questions first (for same vote count, newer at bottom)
     return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
   });
 }

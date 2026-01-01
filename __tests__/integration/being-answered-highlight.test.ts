@@ -317,6 +317,93 @@ describe("Being Answered Question Highlighting and Sorting", () => {
       // Regular question at bottom despite high votes
       expect(sorted[2].id).toBe(q3.id);
     });
+
+    it("should always show answered questions at the very bottom", async () => {
+      const now = Date.now();
+
+      // Create questions with various statuses
+      const q1 = await db.question.create({
+        data: {
+          content: "Being answered question",
+          sessionId,
+          participantId: "participant-1",
+          status: "being_answered",
+          voteCount: 3,
+          createdAt: new Date(now - 4000),
+        },
+      });
+
+      const q2 = await db.question.create({
+        data: {
+          content: "High vote approved question",
+          sessionId,
+          participantId: "participant-2",
+          status: "approved",
+          voteCount: 15,
+          createdAt: new Date(now - 3000),
+        },
+      });
+
+      const q3 = await db.question.create({
+        data: {
+          content: "Medium vote approved question",
+          sessionId,
+          participantId: "participant-3",
+          status: "approved",
+          voteCount: 8,
+          createdAt: new Date(now - 2000),
+        },
+      });
+
+      const q4 = await db.question.create({
+        data: {
+          content: "Answered question with high votes",
+          sessionId,
+          participantId: "participant-4",
+          status: "answered",
+          voteCount: 20, // Even with high votes, should be at bottom
+          createdAt: new Date(now - 5000),
+        },
+      });
+
+      const q5 = await db.question.create({
+        data: {
+          content: "Another answered question",
+          sessionId,
+          participantId: "participant-5",
+          status: "answered",
+          voteCount: 5,
+          createdAt: new Date(now - 1000),
+        },
+      });
+
+      const questions = await db.question.findMany({
+        where: { sessionId },
+      });
+
+      const questionResponses: QuestionResponse[] = questions.map((q) => ({
+        id: q.id,
+        content: q.content,
+        authorName: q.authorName,
+        isAnonymous: q.isAnonymous,
+        status: q.status,
+        voteCount: q.voteCount,
+        createdAt: q.createdAt.toISOString(),
+      }));
+
+      const sorted = sortQuestions(questionResponses);
+
+      // Verify sort order
+      expect(sorted[0].id).toBe(q1.id); // being_answered first
+      expect(sorted[1].id).toBe(q2.id); // highest votes among approved
+      expect(sorted[2].id).toBe(q3.id); // medium votes approved
+      expect(sorted[3].id).toBe(q4.id); // answered questions at bottom
+      expect(sorted[4].id).toBe(q5.id); // another answered
+
+      // Verify answered questions are at the end
+      expect(sorted[sorted.length - 1].status).toBe("answered");
+      expect(sorted[sorted.length - 2].status).toBe("answered");
+    });
   });
 
   describe("Question Status Identification", () => {
