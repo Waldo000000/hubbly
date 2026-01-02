@@ -61,6 +61,19 @@ export default function PulseCheck({
       setIsSubmitting(true);
       setError("");
 
+      // Optimistically update UI immediately
+      setSubmittedFeedback(feedback);
+
+      // Save to localStorage optimistically
+      const storageKey = `pulse_check_${sessionCode}`;
+      const stored = localStorage.getItem(storageKey);
+      const pulseChecks: Record<string, PulseCheckFeedbackType> = stored
+        ? JSON.parse(stored)
+        : {};
+      pulseChecks[questionId] = feedback;
+      localStorage.setItem(storageKey, JSON.stringify(pulseChecks));
+
+      // Then make API call
       const response = await fetch(`/api/questions/${questionId}/pulse`, {
         method: "POST",
         headers: {
@@ -69,30 +82,31 @@ export default function PulseCheck({
         body: JSON.stringify({ participantId, feedback }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
+        const data = await response.json();
+
         if (response.status === 409) {
-          // Already submitted (from another device or session)
-          setSubmittedFeedback(feedback);
+          // Already submitted (from another device or session) - keep optimistic update
+          return;
         } else {
+          // Rollback on error
+          setSubmittedFeedback(null);
+          delete pulseChecks[questionId];
+          localStorage.setItem(storageKey, JSON.stringify(pulseChecks));
           setError(data.message || "Failed to submit feedback");
         }
-        return;
       }
-
-      // Success
-      setSubmittedFeedback(feedback);
-
-      // Save to localStorage
+    } catch {
+      // Rollback on network error
+      setSubmittedFeedback(null);
       const storageKey = `pulse_check_${sessionCode}`;
       const stored = localStorage.getItem(storageKey);
-      const pulseChecks: Record<string, PulseCheckFeedbackType> = stored
-        ? JSON.parse(stored)
-        : {};
-      pulseChecks[questionId] = feedback;
-      localStorage.setItem(storageKey, JSON.stringify(pulseChecks));
-    } catch {
+      if (stored) {
+        const pulseChecks: Record<string, PulseCheckFeedbackType> =
+          JSON.parse(stored);
+        delete pulseChecks[questionId];
+        localStorage.setItem(storageKey, JSON.stringify(pulseChecks));
+      }
       setError("Network error. Please try again.");
     } finally {
       setIsSubmitting(false);

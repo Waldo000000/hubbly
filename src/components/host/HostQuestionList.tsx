@@ -27,7 +27,20 @@ export default function HostQuestionList({
     setUpdatingQuestionId(questionId);
     setError(null);
 
+    // Find the question we're updating
+    const question = questions.find((q) => q.id === questionId);
+    if (!question) return;
+
+    // Store original status for rollback
+    const originalStatus = question.status;
+
     try {
+      // Optimistically update UI immediately
+      if (onQuestionUpdate) {
+        onQuestionUpdate({ ...question, status: newStatus });
+      }
+
+      // Then make API call
       const response = await fetch(`/api/questions/${questionId}`, {
         method: "PATCH",
         headers: {
@@ -36,15 +49,21 @@ export default function HostQuestionList({
         body: JSON.stringify({ status: newStatus }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
+        const data = await response.json();
         setError(data.message || "Failed to update question status");
+
+        // Rollback on error
+        if (onQuestionUpdate) {
+          onQuestionUpdate({ ...question, status: originalStatus });
+        }
         setUpdatingQuestionId(null);
         return;
       }
 
-      // Call parent callback if provided
+      const data = await response.json();
+
+      // Update with actual response from server (in case any other fields changed)
       if (onQuestionUpdate) {
         onQuestionUpdate(data.question);
       }
@@ -52,6 +71,11 @@ export default function HostQuestionList({
       setUpdatingQuestionId(null);
     } catch {
       setError("An error occurred while updating the question");
+
+      // Rollback on network error
+      if (onQuestionUpdate) {
+        onQuestionUpdate({ ...question, status: originalStatus });
+      }
       setUpdatingQuestionId(null);
     }
   };
