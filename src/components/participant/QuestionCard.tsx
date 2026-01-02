@@ -27,10 +27,7 @@ export default function QuestionCard({
       setIsVoting(true);
 
       if (isVotedByMe) {
-        // Optimistically remove vote (instant UI update)
-        onVoteChange(question.id, false);
-
-        // Then make API call
+        // Remove vote
         const response = await fetch(`/api/questions/${question.id}/vote`, {
           method: "DELETE",
           headers: {
@@ -39,16 +36,11 @@ export default function QuestionCard({
           body: JSON.stringify({ participantId }),
         });
 
-        if (!response.ok) {
-          // Rollback on error
-          onVoteChange(question.id, true);
-          console.error("Failed to remove vote");
+        if (response.ok) {
+          onVoteChange(question.id, false);
         }
       } else {
-        // Optimistically add vote (instant UI update)
-        onVoteChange(question.id, true);
-
-        // Then make API call
+        // Add vote
         const response = await fetch(`/api/questions/${question.id}/vote`, {
           method: "POST",
           headers: {
@@ -57,15 +49,11 @@ export default function QuestionCard({
           body: JSON.stringify({ participantId }),
         });
 
-        if (!response.ok) {
-          // Rollback on error
-          onVoteChange(question.id, false);
-          console.error("Failed to add vote");
+        if (response.ok) {
+          onVoteChange(question.id, true);
         }
       }
     } catch (error) {
-      // Rollback on network error
-      onVoteChange(question.id, isVotedByMe);
       console.error("Error toggling vote:", error);
     } finally {
       setIsVoting(false);

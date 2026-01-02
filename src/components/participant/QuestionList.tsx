@@ -68,11 +68,11 @@ export default function QuestionList({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionCode]);
 
-  // Auto-refresh polling every 3 seconds for responsive updates
+  // Auto-refresh polling every 10 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       fetchQuestions();
-    }, 3000); // 3 seconds
+    }, 10000); // 10 seconds
 
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
