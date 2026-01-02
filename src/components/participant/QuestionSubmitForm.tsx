@@ -52,8 +52,7 @@ export default function QuestionSubmitForm({
         isAnonymous,
       };
 
-      // Start API call (don't await yet - fire and forget for perceived speed)
-      const responsePromise = fetch(`/api/sessions/${sessionCode}/questions`, {
+      const response = await fetch(`/api/sessions/${sessionCode}/questions`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -61,26 +60,9 @@ export default function QuestionSubmitForm({
         body: JSON.stringify(requestBody),
       });
 
-      // Show success immediately (optimistic)
-      setSuccessMessage("Question submitted!");
-      setContent("");
-      setIsAnonymous(false);
-
-      // Trigger refresh immediately (question will appear once API completes)
-      if (onQuestionSubmitted) {
-        onQuestionSubmitted();
-      }
-
-      // Then check if the API call actually succeeded
-      const response = await responsePromise;
       const data = await response.json();
 
       if (!response.ok) {
-        // Rollback on error
-        setContent(requestBody.content);
-        setIsAnonymous(requestBody.isAnonymous);
-        setSuccessMessage("");
-
         if (response.status === 429) {
           setErrorMessage(
             data.message || "Too many questions. Please try again later.",
@@ -97,10 +79,20 @@ export default function QuestionSubmitForm({
         return;
       }
 
-      // Clear success message after 2 seconds
+      // Success
+      setSuccessMessage("Question submitted successfully!");
+      setContent("");
+      setIsAnonymous(false);
+
+      // Trigger immediate refresh in parent to show the question
+      if (onQuestionSubmitted) {
+        onQuestionSubmitted();
+      }
+
+      // Clear success message after 3 seconds
       setTimeout(() => {
         setSuccessMessage("");
-      }, 2000);
+      }, 3000);
     } catch {
       setErrorMessage(
         "Network error. Please check your connection and try again.",

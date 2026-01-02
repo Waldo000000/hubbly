@@ -23,13 +23,10 @@ export default function QuestionCard({
   const [isVoting, setIsVoting] = useState(false);
 
   const handleVoteToggle = async () => {
-    // Store original state for rollback
-    const wasVoted = isVotedByMe;
-
     try {
       setIsVoting(true);
 
-      if (wasVoted) {
+      if (isVotedByMe) {
         // Optimistically remove vote (instant UI update)
         onVoteChange(question.id, false);
 
@@ -67,8 +64,8 @@ export default function QuestionCard({
         }
       }
     } catch (error) {
-      // Rollback on network error to original state
-      onVoteChange(question.id, wasVoted);
+      // Rollback on network error
+      onVoteChange(question.id, isVotedByMe);
       console.error("Error toggling vote:", error);
     } finally {
       setIsVoting(false);
