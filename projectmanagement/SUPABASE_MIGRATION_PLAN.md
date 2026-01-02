@@ -4,11 +4,28 @@
 
 This document outlines the migration from the current stack (Prisma + NextAuth) to a full Supabase stack (Supabase Client + Supabase Auth). This migration achieves three goals simultaneously:
 
-1. ✅ **RLS Security**: Built-in, properly integrated
-2. ✅ **Realtime Updates**: Native Supabase Realtime (no polling)
+1. ✅ **RLS Security**: COMPLETED - Enabled on all tables with postgres role BYPASSRLS
+2. 🎯 **Realtime Updates**: IN PROGRESS - Native Supabase Realtime (no polling)
 3. ✅ **Common Stack**: Industry-standard Supabase + Next.js architecture
 
 **Learning Note**: During implementation, I will explain each step in detail so you can understand Supabase patterns, best practices, and how everything fits together.
+
+## Current Status (Updated 2026-01-02)
+
+**✅ Completed:**
+- RLS enabled on all 9 public tables (including `_prisma_migrations`)
+- Database is secured (anon key access blocked, postgres role bypasses RLS)
+- All 157 tests passing
+- 10-second polling for cross-user updates (functional but not ideal)
+
+**🚧 Current Issue:**
+- Polling + optimistic updates = race conditions and ordering glitches
+- Need true realtime to eliminate polling conflicts
+
+**🎯 Next Steps:**
+- Migrate to Supabase Client SDK + Auth (Phases 0-2)
+- Implement proper RLS policies for client-side queries (Phase 3)
+- Add Supabase Realtime subscriptions (Phase 4)
 
 ## Current State vs Target State
 
@@ -108,7 +125,24 @@ Supabase (full platform: DB + Auth + Realtime + RLS)
 
 ## Phase-by-Phase Implementation Plan
 
-### Phase 0: Preparation (1 hour)
+### ✅ Phase -1: RLS Security (COMPLETED)
+
+**Status**: COMPLETED 2026-01-02
+
+**What Was Done:**
+- Enabled RLS on all 9 public tables
+- Verified postgres role has BYPASSRLS privilege
+- All Prisma operations continue to work (bypass RLS)
+- Client SDK anon key access is blocked
+- Two migrations created and deployed:
+  - `20260102000000_enable_rls_security` - 8 tables
+  - `20260102000001_enable_rls_prisma_migrations` - _prisma_migrations table
+
+**Result**: Database is secure. Ready for Supabase stack migration.
+
+---
+
+### Phase 0: Preparation (1 hour) - NEXT STEP
 
 **Goal**: Set up Supabase Auth, verify it works before touching application code
 
@@ -595,19 +629,19 @@ if (!user) {
 console.log(user.id, user.email);
 ```
 
-### Phase 4: RLS Policies (1-2 hours)
+### Phase 4: Update RLS Policies for Client Access (1-2 hours)
 
-**Goal**: Define security policies now that Supabase Auth is integrated
+**Goal**: Update RLS policies to allow client-side queries (currently RLS enabled but no policies)
+
+**Current State**: RLS is enabled with zero policies (only postgres role with BYPASSRLS can access)
+
+**What We Need**: Add policies to allow Supabase Client SDK (anon key) to read approved questions, insert questions, etc.
 
 **Run in Supabase SQL Editor** (Dashboard → SQL Editor → New Query):
 
 ```sql
--- Enable RLS on all tables
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE qa_sessions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE questions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE votes ENABLE ROW LEVEL SECURITY;
-ALTER TABLE pulse_check_feedback ENABLE ROW LEVEL SECURITY;
+-- Note: RLS is already enabled on all tables
+-- Now we just need to add policies to allow client-side access
 
 -- Users table policies
 CREATE POLICY "Users can read own profile"
