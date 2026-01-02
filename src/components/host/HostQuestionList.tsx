@@ -14,6 +14,9 @@ export default function HostQuestionList({
   questions,
   onQuestionUpdate,
 }: HostQuestionListProps) {
+  const [updatingQuestionId, setUpdatingQuestionId] = useState<string | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
 
   // Handle status update
@@ -21,6 +24,9 @@ export default function HostQuestionList({
     questionId: string,
     newStatus: "being_answered" | "answered",
   ) => {
+    setUpdatingQuestionId(questionId);
+    setError(null);
+
     // Find the question we're updating
     const question = questions.find((q) => q.id === questionId);
     if (!question) return;
@@ -28,15 +34,13 @@ export default function HostQuestionList({
     // Store original status for rollback
     const originalStatus = question.status;
 
-    // Optimistically update UI immediately (no loading state - instant feedback)
-    if (onQuestionUpdate) {
-      onQuestionUpdate({ ...question, status: newStatus });
-    }
-
-    setError(null);
-
     try {
-      // Then make API call in background
+      // Optimistically update UI immediately
+      if (onQuestionUpdate) {
+        onQuestionUpdate({ ...question, status: newStatus });
+      }
+
+      // Then make API call
       const response = await fetch(`/api/questions/${questionId}`, {
         method: "PATCH",
         headers: {
@@ -53,6 +57,7 @@ export default function HostQuestionList({
         if (onQuestionUpdate) {
           onQuestionUpdate({ ...question, status: originalStatus });
         }
+        setUpdatingQuestionId(null);
         return;
       }
 
@@ -62,6 +67,8 @@ export default function HostQuestionList({
       if (onQuestionUpdate) {
         onQuestionUpdate(data.question);
       }
+
+      setUpdatingQuestionId(null);
     } catch {
       setError("An error occurred while updating the question");
 
@@ -69,6 +76,7 @@ export default function HostQuestionList({
       if (onQuestionUpdate) {
         onQuestionUpdate({ ...question, status: originalStatus });
       }
+      setUpdatingQuestionId(null);
     }
   };
 
@@ -242,25 +250,35 @@ export default function HostQuestionList({
                     onClick={() =>
                       handleStatusUpdate(question.id, "being_answered")
                     }
-                    disabled={question.status === "being_answered"}
+                    disabled={
+                      updatingQuestionId === question.id ||
+                      question.status === "being_answered"
+                    }
                     className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                       question.status === "being_answered"
                         ? "bg-blue-100 text-blue-800 cursor-not-allowed"
                         : "bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200"
-                    }`}
+                    } ${updatingQuestionId === question.id ? "opacity-50 cursor-wait" : ""}`}
                   >
-                    Being Answered
+                    {updatingQuestionId === question.id
+                      ? "Updating..."
+                      : "Being Answered"}
                   </button>
                   <button
                     onClick={() => handleStatusUpdate(question.id, "answered")}
-                    disabled={question.status === "answered"}
+                    disabled={
+                      updatingQuestionId === question.id ||
+                      question.status === "answered"
+                    }
                     className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                       question.status === "answered"
                         ? "bg-green-100 text-green-800 cursor-not-allowed"
                         : "bg-green-50 text-green-700 hover:bg-green-100 border border-green-200"
-                    }`}
+                    } ${updatingQuestionId === question.id ? "opacity-50 cursor-wait" : ""}`}
                   >
-                    Answered
+                    {updatingQuestionId === question.id
+                      ? "Updating..."
+                      : "Answered"}
                   </button>
                 </div>
               </div>

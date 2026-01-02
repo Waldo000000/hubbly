@@ -58,12 +58,10 @@ export default function HostDashboardPage() {
     }
   };
 
-  // Fetch questions (silent: don't show loading state during background polls)
-  const fetchQuestions = async (silent = false) => {
+  // Fetch questions
+  const fetchQuestions = async () => {
     try {
-      if (!silent) {
-        setIsLoadingQuestions(true);
-      }
+      setIsLoadingQuestions(true);
       const response = await fetch(`/api/sessions/${code}/host/questions`);
       const data = await response.json();
 
@@ -77,9 +75,7 @@ export default function HostDashboardPage() {
     } catch (err) {
       console.error("Error fetching questions:", err);
     } finally {
-      if (!silent) {
-        setIsLoadingQuestions(false);
-      }
+      setIsLoadingQuestions(false);
     }
   };
 
@@ -103,11 +99,11 @@ export default function HostDashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, code]);
 
-  // Auto-refresh questions every 3 seconds (silent to avoid loading glitch)
+  // Auto-refresh questions every 3 seconds
   useEffect(() => {
     if (status === "authenticated" && code && sessionData) {
       const interval = setInterval(() => {
-        fetchQuestions(true); // silent = true for background polling
+        fetchQuestions();
       }, 3000);
 
       return () => clearInterval(interval);
