@@ -139,11 +139,11 @@ export default function QuestionList({
       JSON.stringify(Array.from(newVotedQuestions)),
     );
 
-    // Update question vote count locally
+    // Update question vote count locally (with defensive null check)
     setQuestions((prev) =>
       prev.map((q) =>
         q.id === questionId
-          ? { ...q, voteCount: q.voteCount + (voted ? 1 : -1) }
+          ? { ...q, voteCount: Math.max(0, (q.voteCount || 0) + (voted ? 1 : -1)) }
           : q,
       ),
     );
