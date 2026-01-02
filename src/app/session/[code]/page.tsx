@@ -26,6 +26,9 @@ export default function ParticipantSessionPage() {
   // Participant ID
   const [participantId, setParticipantId] = useState<string | null>(null);
 
+  // Question refresh key - increment to trigger refresh
+  const [questionRefreshKey, setQuestionRefreshKey] = useState(0);
+
   // Initialize participant ID and check for stored name
   useEffect(() => {
     if (code) {
@@ -291,6 +294,7 @@ export default function ParticipantSessionPage() {
           participantId={participantId || ""}
           participantName={participantName}
           isAcceptingQuestions={isAcceptingQuestions}
+          onQuestionSubmitted={() => setQuestionRefreshKey((prev) => prev + 1)}
         />
 
         {/* Question list with voting */}
@@ -298,6 +302,7 @@ export default function ParticipantSessionPage() {
           <QuestionList
             sessionCode={code}
             participantId={participantId || ""}
+            refreshKey={questionRefreshKey}
           />
         </div>
       </div>

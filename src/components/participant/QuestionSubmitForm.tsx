@@ -8,6 +8,7 @@ interface QuestionSubmitFormProps {
   participantId: string;
   participantName: string;
   isAcceptingQuestions: boolean;
+  onQuestionSubmitted?: () => void;
 }
 
 export default function QuestionSubmitForm({
@@ -15,6 +16,7 @@ export default function QuestionSubmitForm({
   participantId,
   participantName,
   isAcceptingQuestions,
+  onQuestionSubmitted,
 }: QuestionSubmitFormProps) {
   const [content, setContent] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
@@ -81,6 +83,11 @@ export default function QuestionSubmitForm({
       setSuccessMessage("Question submitted successfully!");
       setContent("");
       setIsAnonymous(false);
+
+      // Trigger immediate refresh in parent to show the question
+      if (onQuestionSubmitted) {
+        onQuestionSubmitted();
+      }
 
       // Clear success message after 3 seconds
       setTimeout(() => {

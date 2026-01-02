@@ -8,11 +8,13 @@ import QuestionCard from "./QuestionCard";
 interface QuestionListProps {
   sessionCode: string;
   participantId: string;
+  refreshKey?: number;
 }
 
 export default function QuestionList({
   sessionCode,
   participantId,
+  refreshKey = 0,
 }: QuestionListProps) {
   const [questions, setQuestions] = useState<GetQuestionsResponse["questions"]>(
     [],
@@ -41,22 +43,28 @@ export default function QuestionList({
     }
   }, [sessionCode]);
 
-  // Fetch questions from API
-  const fetchQuestions = async () => {
+  // Fetch questions from API (silent: don't clear data or show errors during background polls)
+  const fetchQuestions = async (silent = false) => {
     try {
-      setError("");
+      if (!silent) {
+        setError("");
+      }
 
       const response = await fetch(`/api/sessions/${sessionCode}/questions`);
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Failed to load questions");
+        if (!silent) {
+          setError(data.error || "Failed to load questions");
+        }
         return;
       }
 
       setQuestions(data.questions);
     } catch {
-      setError("Network error. Please try again.");
+      if (!silent) {
+        setError("Network error. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -68,15 +76,23 @@ export default function QuestionList({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionCode]);
 
-  // Auto-refresh polling every 3 seconds for responsive updates
+  // Auto-refresh polling every 3 seconds for responsive updates (silent to avoid glitches)
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchQuestions();
+      fetchQuestions(true); // silent = true for background polling
     }, 3000); // 3 seconds
 
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionCode]);
+
+  // Refresh when refreshKey changes (e.g., after submitting a question)
+  useEffect(() => {
+    if (refreshKey > 0) {
+      fetchQuestions(true); // silent refresh
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshKey]);
 
   // Auto-scroll to "being_answered" question when it changes
   useEffect(() => {
