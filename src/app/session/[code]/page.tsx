@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import useSWR from "swr";
 import type { GetSessionResponse } from "@/types/session";
 import { getOrCreateParticipantId } from "@/lib/participant-id";
 import QuestionSubmitForm from "@/components/participant/QuestionSubmitForm";
@@ -11,12 +12,46 @@ export default function ParticipantSessionPage() {
   const params = useParams();
   const code = params?.code as string;
 
-  // State
-  const [sessionData, setSessionData] = useState<
-    GetSessionResponse["session"] | null
-  >(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  // Fetcher function for SWR
+  const fetcher = async (url: string) => {
+    const response = await fetch(url);
+    const data = await response.json();
+
+    if (!response.ok) {
+      const error = new Error(data.error || "Failed to fetch session");
+      (error as any).status = response.status;
+      (error as any).data = data;
+      throw error;
+    }
+
+    return data;
+  };
+
+  // Fetch session data with SWR
+  const {
+    data: sessionResponse,
+    error: sessionError,
+    isLoading,
+  } = useSWR<GetSessionResponse>(
+    code ? `/api/sessions/${code}` : null,
+    fetcher,
+    {
+      refreshInterval: 10000, // Poll every 10s to detect session status changes
+      revalidateOnFocus: true,
+      dedupingInterval: 2000,
+    }
+  );
+
+  const sessionData = sessionResponse?.session;
+
+  // Format error message based on status code
+  const error = sessionError
+    ? (sessionError as any).status === 404
+      ? "Session not found. Please check the code."
+      : (sessionError as any).status === 410
+        ? "This session has expired."
+        : (sessionError as any).data?.error || sessionError.message || "Failed to load session"
+    : "";
 
   // Name entry state
   const [participantName, setParticipantName] = useState("");
@@ -39,40 +74,6 @@ export default function ParticipantSessionPage() {
         setHasEnteredName(true);
       }
     }
-  }, [code]);
-
-  // Fetch session data
-  useEffect(() => {
-    const fetchSession = async () => {
-      if (!code) return;
-
-      try {
-        setIsLoading(true);
-        setError("");
-
-        const response = await fetch(`/api/sessions/${code}`);
-        const data = await response.json();
-
-        if (!response.ok) {
-          if (response.status === 404) {
-            setError("Session not found. Please check the code.");
-          } else if (response.status === 410) {
-            setError("This session has expired.");
-          } else {
-            setError(data.error || "Failed to load session");
-          }
-          return;
-        }
-
-        setSessionData(data.session);
-      } catch {
-        setError("Network error. Please try again.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchSession();
   }, [code]);
 
   // Handle name submission
