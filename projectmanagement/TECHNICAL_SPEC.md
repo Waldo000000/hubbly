@@ -35,10 +35,21 @@ A real-time Q&A application for events, meetings, and presentations. Users can c
 - No guest access for session creation (hosts must authenticate)
 - Anonymous participation for audience members
 
-### Real-time Features
+### Client State Management
 
-- **Server-Sent Events (SSE)** or **WebSockets** via Next.js API routes
-- Real-time question updates and voting
+- **SWR** (stale-while-revalidate) for data fetching, caching, and revalidation
+- **Optimistic updates** for instant UI feedback (voting, question submission, status changes)
+- **Smart polling** via SWR's `refreshInterval` for cross-user updates (10-second interval)
+- **Automatic revalidation** on tab focus and network reconnect
+- **Request deduplication** across components sharing the same data
+- **Database-agnostic** architecture - no vendor lock-in to realtime providers
+
+### Real-time Strategy
+
+- **Polling-based updates** for cross-user changes (new questions, vote counts, status updates)
+- **Optimistic UI updates** for same-user actions (immediate feedback without waiting for server)
+- **No WebSockets/SSE** - keeps architecture simple and compatible with any backend
+- **10-second refresh interval** provides near-real-time experience for audiences
 
 ## Database Schema
 
