@@ -1,8 +1,9 @@
 "use client";
 
 import { useSession, signIn } from "next-auth/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import useSWR from "swr";
 import type { GetSessionResponse } from "@/types/session";
 import type { HostQuestionResponse } from "@/types/question";
 import HostQuestionList from "@/components/host/HostQuestionList";
@@ -13,113 +14,114 @@ export default function HostDashboardPage() {
   const router = useRouter();
   const code = params?.code as string;
 
-  // State
-  const [sessionData, setSessionData] = useState<
-    GetSessionResponse["session"] | null
-  >(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [isUpdating, setIsUpdating] = useState(false);
+  // UI state
   const [showCopiedMessage, setShowCopiedMessage] = useState(false);
-  const [questions, setQuestions] = useState<HostQuestionResponse[]>([]);
-  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
 
-  // Fetch session data
-  const fetchSessionData = async () => {
-    try {
-      setIsLoading(true);
-      setError("");
+  // Redirect to sign in if not authenticated
+  if (status === "unauthenticated") {
+    signIn("google");
+  }
 
-      const response = await fetch(`/api/sessions/${code}`);
-      const data = await response.json();
+  // Fetcher function for SWR
+  const fetcher = async (url: string) => {
+    const response = await fetch(url);
+    const data = await response.json();
 
-      if (!response.ok) {
-        if (response.status === 404) {
-          setError("Session not found. Please check the code.");
-        } else if (response.status === 410) {
-          setError("This session has expired.");
-        } else {
-          setError(data.error || "Failed to load session");
-        }
-        return;
-      }
-
-      // Verify host ownership
-      if (data.session.hostId !== session?.user?.id) {
-        setError("Access denied. You are not the host of this session.");
-        return;
-      }
-
-      setSessionData(data.session);
-    } catch {
-      setError("Network error. Please try again.");
-    } finally {
-      setIsLoading(false);
+    if (!response.ok) {
+      const error = new Error(data.error || "Failed to fetch data");
+      (error as any).status = response.status;
+      (error as any).data = data;
+      throw error;
     }
+
+    return data;
   };
 
-  // Fetch questions
-  const fetchQuestions = async () => {
-    try {
-      setIsLoadingQuestions(true);
-      const response = await fetch(`/api/sessions/${code}/host/questions`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        // Don't set error state for questions - just log it
-        console.error("Failed to load questions:", data);
-        return;
-      }
-
-      setQuestions(data.questions || []);
-    } catch (err) {
-      console.error("Error fetching questions:", err);
-    } finally {
-      setIsLoadingQuestions(false);
+  // Fetch session data with SWR
+  const {
+    data: sessionResponse,
+    error: sessionError,
+    isLoading: isLoadingSession,
+    mutate: mutateSession,
+  } = useSWR<GetSessionResponse>(
+    status === "authenticated" && code ? `/api/sessions/${code}` : null,
+    fetcher,
+    {
+      refreshInterval: 3000, // Poll every 3 seconds
+      revalidateOnFocus: true,
+      dedupingInterval: 1000,
     }
-  };
+  );
 
-  // Handle question update from HostQuestionList
+  // Fetch questions with SWR
+  const {
+    data: questionsResponse,
+    error: questionsError,
+    isLoading: isLoadingQuestions,
+    mutate: mutateQuestions,
+  } = useSWR<{ questions: HostQuestionResponse[] }>(
+    status === "authenticated" && code ? `/api/sessions/${code}/host/questions` : null,
+    fetcher,
+    {
+      refreshInterval: 3000, // Poll every 3 seconds
+      revalidateOnFocus: true,
+      dedupingInterval: 1000,
+    }
+  );
+
+  const sessionData = sessionResponse?.session;
+  const questions = questionsResponse?.questions || [];
+
+  // Handle question update from HostQuestionList (optimistic update)
   const handleQuestionUpdate = (updatedQuestion: HostQuestionResponse) => {
-    setQuestions((prevQuestions) =>
-      prevQuestions.map((q) =>
-        q.id === updatedQuestion.id ? updatedQuestion : q,
-      ),
+    // Optimistic update
+    mutateQuestions(
+      (current) => {
+        if (!current) return current;
+        return {
+          questions: current.questions.map((q) =>
+            q.id === updatedQuestion.id ? updatedQuestion : q
+          ),
+        };
+      },
+      { revalidate: false }
     );
   };
 
-  // Trigger fetch on mount and when auth status changes
-  useEffect(() => {
-    if (status === "authenticated" && code) {
-      fetchSessionData();
-      fetchQuestions();
-    } else if (status === "unauthenticated") {
-      signIn("google");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, code]);
+  // Check for host ownership error
+  const error =
+    sessionError && session?.user?.id && sessionData?.hostId !== session.user.id
+      ? "Access denied. You are not the host of this session."
+      : sessionError
+        ? (sessionError as any).data?.error || sessionError.message
+        : "";
 
-  // Auto-refresh questions every 3 seconds
-  useEffect(() => {
-    if (status === "authenticated" && code && sessionData) {
-      const interval = setInterval(() => {
-        fetchQuestions();
-      }, 3000);
+  const isLoading = isLoadingSession;
 
-      return () => clearInterval(interval);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, code, sessionData]);
-
-  // Update session status
+  // Update session status with optimistic updates
   const updateSessionStatus = async (
     field: "isActive" | "isAcceptingQuestions",
     value: boolean,
   ) => {
     if (!sessionData) return;
 
+    // Optimistic update
+    mutateSession(
+      (current) => {
+        if (!current) return current;
+        return {
+          ...current,
+          session: {
+            ...current.session,
+            [field]: value,
+          },
+        };
+      },
+      { revalidate: false }
+    );
+
     try {
-      setIsUpdating(true);
+      // Fire API request in background
       const response = await fetch(`/api/sessions/${code}`, {
         method: "PATCH",
         headers: {
@@ -128,21 +130,14 @@ export default function HostDashboardPage() {
         body: JSON.stringify({ [field]: value }),
       });
 
+      // If API fails, revert the optimistic update
       if (!response.ok) {
-        const data = await response.json();
-        setError(data.error || "Failed to update session");
-        return;
+        console.error("Failed to update session status");
+        mutateSession(); // Force refresh from server
       }
-
-      // Update local state
-      setSessionData({
-        ...sessionData,
-        [field]: value,
-      });
-    } catch {
-      setError("Network error. Please try again.");
-    } finally {
-      setIsUpdating(false);
+    } catch (error) {
+      console.error("Network error updating session:", error);
+      mutateSession(); // Force refresh from server
     }
   };
 
@@ -624,11 +619,11 @@ export default function HostDashboardPage() {
                 onChange={(e) =>
                   updateSessionStatus("isActive", e.target.checked)
                 }
-                disabled={isUpdating || isExpired}
+                disabled={isExpired}
                 style={{
                   width: "20px",
                   height: "20px",
-                  cursor: isUpdating || isExpired ? "not-allowed" : "pointer",
+                  cursor: isExpired ? "not-allowed" : "pointer",
                 }}
               />
             </label>
@@ -668,11 +663,11 @@ export default function HostDashboardPage() {
                 onChange={(e) =>
                   updateSessionStatus("isAcceptingQuestions", e.target.checked)
                 }
-                disabled={isUpdating || isExpired}
+                disabled={isExpired}
                 style={{
                   width: "20px",
                   height: "20px",
-                  cursor: isUpdating || isExpired ? "not-allowed" : "pointer",
+                  cursor: isExpired ? "not-allowed" : "pointer",
                 }}
               />
             </label>
@@ -778,19 +773,19 @@ export default function HostDashboardPage() {
         <div style={{ display: "flex", gap: "1rem" }}>
           <button
             onClick={endSession}
-            disabled={!sessionData.isActive || isUpdating || isExpired}
+            disabled={!sessionData.isActive || isExpired}
             style={{
               padding: "0.75rem 1.5rem",
               fontSize: "1rem",
               backgroundColor:
-                !sessionData.isActive || isUpdating || isExpired
+                !sessionData.isActive || isExpired
                   ? "#9ca3af"
                   : "#dc2626",
               color: "white",
               border: "none",
               borderRadius: "6px",
               cursor:
-                !sessionData.isActive || isUpdating || isExpired
+                !sessionData.isActive || isExpired
                   ? "not-allowed"
                   : "pointer",
             }}
