@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import type { QuestionResponse } from "@/types/question";
 import { PULSE_CHECK_EMOJIS } from "@/types/question";
 import PulseCheck from "./PulseCheck";
@@ -20,43 +19,30 @@ export default function QuestionCard({
   isVotedByMe,
   onVoteChange,
 }: QuestionCardProps) {
-  const [isVoting, setIsVoting] = useState(false);
-
   const handleVoteToggle = async () => {
+    // Optimistic update: Update UI immediately BEFORE API call
+    const newVotedState = !isVotedByMe;
+    onVoteChange(question.id, newVotedState);
+
     try {
-      setIsVoting(true);
+      // Fire API request in background (don't await, don't block UI)
+      const response = await fetch(`/api/questions/${question.id}/vote`, {
+        method: isVotedByMe ? "DELETE" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ participantId }),
+      });
 
-      if (isVotedByMe) {
-        // Remove vote
-        const response = await fetch(`/api/questions/${question.id}/vote`, {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ participantId }),
-        });
-
-        if (response.ok) {
-          onVoteChange(question.id, false);
-        }
-      } else {
-        // Add vote
-        const response = await fetch(`/api/questions/${question.id}/vote`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ participantId }),
-        });
-
-        if (response.ok) {
-          onVoteChange(question.id, true);
-        }
+      // If API fails, revert the optimistic update
+      if (!response.ok) {
+        console.error("Vote API failed, reverting optimistic update");
+        onVoteChange(question.id, isVotedByMe); // Revert to original state
       }
     } catch (error) {
       console.error("Error toggling vote:", error);
-    } finally {
-      setIsVoting(false);
+      // Revert optimistic update on error
+      onVoteChange(question.id, isVotedByMe);
     }
   };
 
@@ -103,12 +89,11 @@ export default function QuestionCard({
         <div className="flex flex-col items-center gap-1 flex-shrink-0">
           <button
             onClick={handleVoteToggle}
-            disabled={isVoting}
             className={`px-3 py-2 rounded-lg flex flex-col items-center justify-center transition-all border-2 min-w-[64px] ${
               isVotedByMe
                 ? "bg-blue-600 text-white border-blue-600 hover:bg-blue-700 hover:border-blue-700"
                 : "bg-white text-gray-700 border-gray-300 hover:border-blue-500 hover:bg-blue-50"
-            } disabled:opacity-50 disabled:cursor-not-allowed`}
+            }`}
             aria-label={isVotedByMe ? "Remove vote" : "Vote for this question"}
           >
             <span className="text-2xl leading-none">▲</span>
