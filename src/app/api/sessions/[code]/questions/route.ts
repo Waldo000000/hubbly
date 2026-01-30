@@ -117,8 +117,10 @@ export async function POST(
     }
 
     // Create question with auto-approved status (moderation UI to be added later)
+    // Use client-provided ID if present (for optimistic UI updates)
     const question = await prisma.question.create({
       data: {
+        ...(body.id && { id: body.id }), // Use client ID if provided
         sessionId: session.id,
         participantId: body.participantId,
         content: body.content.trim(),

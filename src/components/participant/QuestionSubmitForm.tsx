@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { mutate } from "swr";
+import { createId } from "@paralleldrive/cuid2";
 import type { SubmitQuestionRequest } from "@/types/question";
 
 interface QuestionSubmitFormProps {
@@ -43,13 +44,13 @@ export default function QuestionSubmitForm({
     const originalContent = content;
     const originalIsAnonymous = isAnonymous;
 
-    // Generate temporary ID for optimistic update
-    const tempId = `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    // Generate client ID for optimistic update (will be used by server)
+    const questionId = createId();
     const now = new Date().toISOString();
 
     // Create optimistic question object
     const optimisticQuestion = {
-      id: tempId,
+      id: questionId,
       sessionId: sessionCode,
       participantId,
       authorName: originalIsAnonymous ? undefined : participantName,
@@ -83,11 +84,12 @@ export default function QuestionSubmitForm({
 
     // Notify parent to scroll to the optimistic question
     if (onQuestionSubmitted) {
-      onQuestionSubmitted(tempId);
+      onQuestionSubmitted(questionId);
     }
 
     try {
       const requestBody: SubmitQuestionRequest = {
+        id: questionId, // Send client-generated ID to server
         content: originalContent.trim(),
         participantId,
         authorName: originalIsAnonymous ? undefined : participantName,
@@ -113,7 +115,7 @@ export default function QuestionSubmitForm({
           (currentData: { questions: typeof optimisticQuestion[] } | undefined) => {
             if (!currentData) return currentData;
             return {
-              questions: currentData.questions.filter((q) => q.id !== tempId),
+              questions: currentData.questions.filter((q) => q.id !== questionId),
               total: currentData.questions.length - 1,
             };
           },
@@ -141,27 +143,10 @@ export default function QuestionSubmitForm({
         return;
       }
 
-      // Success - replace optimistic question with real one
-      const realQuestion = data.question;
-
-      mutate(
-        `/api/sessions/${sessionCode}/questions`,
-        (currentData: { questions: typeof optimisticQuestion[] } | undefined) => {
-          if (!currentData) return currentData;
-          return {
-            questions: currentData.questions.map((q) =>
-              q.id === tempId ? realQuestion : q
-            ),
-            total: currentData.questions.length,
-          };
-        },
-        { revalidate: false }
-      );
-
-      // Update scroll target to real question ID
-      if (realQuestion?.id && onQuestionSubmitted) {
-        onQuestionSubmitted(realQuestion.id);
-      }
+      // Success - revalidate from server
+      // Server will return the question with the same ID we sent,
+      // so framer-motion sees it as the same element (no animation glitch)
+      mutate(`/api/sessions/${sessionCode}/questions`);
     } catch {
       // Network error - revert optimistic update
       mutate(
@@ -169,7 +154,7 @@ export default function QuestionSubmitForm({
         (currentData: { questions: typeof optimisticQuestion[] } | undefined) => {
           if (!currentData) return currentData;
           return {
-            questions: currentData.questions.filter((q) => q.id !== tempId),
+            questions: currentData.questions.filter((q) => q.id !== questionId),
             total: currentData.questions.length - 1,
           };
         },

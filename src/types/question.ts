@@ -20,6 +20,8 @@ export type { QuestionStatus, PulseCheckFeedbackType };
 
 /** Submit a new question to a session */
 export interface SubmitQuestionRequest {
+  /** Client-generated ID for optimistic updates (optional) */
+  id?: string;
   /** Question content (1-100000 characters) */
   content: string;
   /** Participant's display name (optional) */
