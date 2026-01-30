@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import useSWR from "swr";
+import FlipMove from "react-flip-move";
 import type { GetQuestionsResponse } from "@/types/question";
 import { sortQuestions } from "@/lib/question-utils";
 import { fetcher } from "@/lib/swr-utils";
@@ -47,6 +48,9 @@ export default function QuestionList({
     new Map()
   );
 
+  // Track if we should scroll to a specific question (only for new submissions)
+  const scrollToQuestionId = useRef<string | null>(null);
+
   // Load voted questions from localStorage
   useEffect(() => {
     const storageKey = `voted_questions_${sessionCode}`;
@@ -61,7 +65,7 @@ export default function QuestionList({
     }
   }, [sessionCode]);
 
-  // Auto-scroll to "being_answered" question when it changes
+  // Auto-scroll to "being_answered" question when it changes (host feature)
   useEffect(() => {
     const beingAnsweredQuestion = questions.find(
       (q) => q.status === "being_answered",
@@ -85,6 +89,22 @@ export default function QuestionList({
 
     // Update the previous being_answered ID
     prevBeingAnsweredId.current = currentBeingAnsweredId;
+  }, [questions]);
+
+  // Auto-scroll only to newly submitted questions (not on voting/re-sorting)
+  useEffect(() => {
+    if (scrollToQuestionId.current && questionRefs.current.has(scrollToQuestionId.current)) {
+      setTimeout(() => {
+        const element = questionRefs.current.get(scrollToQuestionId.current!);
+        if (element) {
+          element.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+        }
+        scrollToQuestionId.current = null;
+      }, 100); // Small delay to ensure DOM is updated
+    }
   }, [questions]);
 
   // Detect new questions and handle highlighting + scrolling
@@ -128,17 +148,9 @@ export default function QuestionList({
     if (newIds.size > 0) {
       setNewQuestionIds(newIds);
 
-      // Auto-scroll to user's submitted question
-      if (userSubmittedId && questionRefs.current.has(userSubmittedId)) {
-        setTimeout(() => {
-          const element = questionRefs.current.get(userSubmittedId!);
-          if (element) {
-            element.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-            });
-          }
-        }, 100); // Small delay to ensure DOM is updated
+      // Set scroll target only for user's submitted question
+      if (userSubmittedId && currentIds.has(userSubmittedId)) {
+        scrollToQuestionId.current = userSubmittedId;
       }
 
       // Remove highlights after 2 seconds
@@ -241,7 +253,16 @@ export default function QuestionList({
         </span>
       </div>
 
-      <div className="flex flex-col gap-4">
+      <FlipMove
+        duration={350}
+        easing="ease-out"
+        staggerDelayBy={0}
+        appearAnimation="fade"
+        enterAnimation="fade"
+        leaveAnimation="fade"
+        typeName="div"
+        className="flex flex-col gap-4"
+      >
         {sortedQuestions.map((question) => {
           const isNew = newQuestionIds.has(question.id);
           return (
@@ -266,7 +287,7 @@ export default function QuestionList({
             </div>
           );
         })}
-      </div>
+      </FlipMove>
     </div>
   );
 }
