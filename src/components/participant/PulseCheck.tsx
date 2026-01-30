@@ -32,7 +32,6 @@ export default function PulseCheck({
 }: PulseCheckProps) {
   const [submittedFeedback, setSubmittedFeedback] =
     useState<PulseCheckFeedbackType | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   // Load submitted feedback from localStorage
@@ -55,12 +54,23 @@ export default function PulseCheck({
   }, [questionId, sessionCode]);
 
   const handleFeedbackSubmit = async (feedback: PulseCheckFeedbackType) => {
-    if (submittedFeedback || isSubmitting) return;
+    if (submittedFeedback) return; // Already submitted
+
+    // Optimistic update: Update UI immediately
+    setSubmittedFeedback(feedback);
+    setError("");
+
+    // Save to localStorage immediately
+    const storageKey = `pulse_check_${sessionCode}`;
+    const stored = localStorage.getItem(storageKey);
+    const pulseChecks: Record<string, PulseCheckFeedbackType> = stored
+      ? JSON.parse(stored)
+      : {};
+    pulseChecks[questionId] = feedback;
+    localStorage.setItem(storageKey, JSON.stringify(pulseChecks));
 
     try {
-      setIsSubmitting(true);
-      setError("");
-
+      // Fire API request in background
       const response = await fetch(`/api/questions/${questionId}/pulse`, {
         method: "POST",
         headers: {
@@ -69,33 +79,41 @@ export default function PulseCheck({
         body: JSON.stringify({ participantId, feedback }),
       });
 
-      const data = await response.json();
-
+      // If API fails, revert the optimistic update
       if (!response.ok) {
+        const data = await response.json();
+
+        // 409 means already submitted elsewhere - keep the optimistic update
         if (response.status === 409) {
-          // Already submitted (from another device or session)
-          setSubmittedFeedback(feedback);
-        } else {
-          setError(data.message || "Failed to submit feedback");
+          return;
         }
-        return;
+
+        // For other errors, revert
+        setSubmittedFeedback(null);
+        setError(data.message || "Failed to submit feedback");
+
+        // Remove from localStorage
+        const stored = localStorage.getItem(storageKey);
+        if (stored) {
+          const pulseChecks: Record<string, PulseCheckFeedbackType> =
+            JSON.parse(stored);
+          delete pulseChecks[questionId];
+          localStorage.setItem(storageKey, JSON.stringify(pulseChecks));
+        }
       }
-
-      // Success
-      setSubmittedFeedback(feedback);
-
-      // Save to localStorage
-      const storageKey = `pulse_check_${sessionCode}`;
-      const stored = localStorage.getItem(storageKey);
-      const pulseChecks: Record<string, PulseCheckFeedbackType> = stored
-        ? JSON.parse(stored)
-        : {};
-      pulseChecks[questionId] = feedback;
-      localStorage.setItem(storageKey, JSON.stringify(pulseChecks));
     } catch {
+      // Network error - revert optimistic update
+      setSubmittedFeedback(null);
       setError("Network error. Please try again.");
-    } finally {
-      setIsSubmitting(false);
+
+      // Remove from localStorage
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        const pulseChecks: Record<string, PulseCheckFeedbackType> =
+          JSON.parse(stored);
+        delete pulseChecks[questionId];
+        localStorage.setItem(storageKey, JSON.stringify(pulseChecks));
+      }
     }
   };
 
@@ -133,8 +151,7 @@ export default function PulseCheck({
           <button
             key={option.type}
             onClick={() => handleFeedbackSubmit(option.type)}
-            disabled={isSubmitting}
-            className={`flex-1 ${option.color} hover:opacity-80 transition-opacity rounded-lg py-3 px-2 flex flex-col items-center gap-1 min-h-[56px] disabled:opacity-50 disabled:cursor-not-allowed`}
+            className={`flex-1 ${option.color} hover:opacity-80 transition-opacity rounded-lg py-3 px-2 flex flex-col items-center gap-1 min-h-[56px]`}
             aria-label={`Rate as ${option.label}`}
           >
             <span className="text-2xl">{option.emoji}</span>
