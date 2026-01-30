@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { mutate } from "swr";
 import type { SubmitQuestionRequest } from "@/types/question";
 
 interface QuestionSubmitFormProps {
@@ -18,7 +19,6 @@ export default function QuestionSubmitForm({
 }: QuestionSubmitFormProps) {
   const [content, setContent] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -38,18 +38,33 @@ export default function QuestionSubmitForm({
       return;
     }
 
-    try {
-      setIsSubmitting(true);
-      setErrorMessage("");
-      setSuccessMessage("");
+    // Store original form values for potential restoration
+    const originalContent = content;
+    const originalIsAnonymous = isAnonymous;
 
+    // Optimistic update: Clear form and show success immediately
+    setContent("");
+    setIsAnonymous(false);
+    setErrorMessage("");
+    setSuccessMessage("Question submitted successfully!");
+
+    // Clear success message after 3 seconds
+    const successTimeout = setTimeout(() => {
+      setSuccessMessage("");
+    }, 3000);
+
+    // Trigger SWR revalidation globally (will refetch questions in QuestionList)
+    mutate(`/api/sessions/${sessionCode}/questions`);
+
+    try {
       const requestBody: SubmitQuestionRequest = {
-        content: content.trim(),
+        content: originalContent.trim(),
         participantId,
-        authorName: isAnonymous ? undefined : participantName,
-        isAnonymous,
+        authorName: originalIsAnonymous ? undefined : participantName,
+        isAnonymous: originalIsAnonymous,
       };
 
+      // Fire API request in background
       const response = await fetch(`/api/sessions/${sessionCode}/questions`, {
         method: "POST",
         headers: {
@@ -60,7 +75,16 @@ export default function QuestionSubmitForm({
 
       const data = await response.json();
 
+      // If API fails, revert the optimistic update
       if (!response.ok) {
+        clearTimeout(successTimeout);
+        setSuccessMessage("");
+
+        // Restore form content
+        setContent(originalContent);
+        setIsAnonymous(originalIsAnonymous);
+
+        // Show appropriate error message
         if (response.status === 429) {
           setErrorMessage(
             data.message || "Too many questions. Please try again later.",
@@ -74,24 +98,16 @@ export default function QuestionSubmitForm({
             data.message || "Failed to submit question. Please try again.",
           );
         }
-        return;
       }
-
-      // Success
-      setSuccessMessage("Question submitted successfully!");
-      setContent("");
-      setIsAnonymous(false);
-
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        setSuccessMessage("");
-      }, 3000);
     } catch {
+      // Network error - revert optimistic update
+      clearTimeout(successTimeout);
+      setSuccessMessage("");
+      setContent(originalContent);
+      setIsAnonymous(originalIsAnonymous);
       setErrorMessage(
         "Network error. Please check your connection and try again.",
       );
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -125,7 +141,7 @@ export default function QuestionSubmitForm({
             onChange={(e) => setContent(e.target.value)}
             placeholder="What would you like to ask?"
             rows={4}
-            disabled={!isAcceptingQuestions || isSubmitting}
+            disabled={!isAcceptingQuestions}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed resize-none"
           />
         </div>
@@ -137,7 +153,7 @@ export default function QuestionSubmitForm({
             type="checkbox"
             checked={isAnonymous}
             onChange={(e) => setIsAnonymous(e.target.checked)}
-            disabled={!isAcceptingQuestions || isSubmitting}
+            disabled={!isAcceptingQuestions}
             className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed"
           />
           <label
@@ -166,17 +182,10 @@ export default function QuestionSubmitForm({
         {/* Submit button */}
         <button
           type="submit"
-          disabled={!isAcceptingQuestions || !isContentValid || isSubmitting}
+          disabled={!isAcceptingQuestions || !isContentValid}
           className="w-full px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed min-h-[56px] flex items-center justify-center"
         >
-          {isSubmitting ? (
-            <>
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-              Submitting...
-            </>
-          ) : (
-            "Submit Question"
-          )}
+          Submit Question
         </button>
       </form>
     </div>
