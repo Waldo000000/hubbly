@@ -32,9 +32,9 @@ export default function ParticipantSessionPage() {
 
   // Format error message with custom messages for session-specific errors
   const error = sessionError
-    ? (sessionError as any).status === 404
+    ? "status" in sessionError && sessionError.status === 404
       ? "Session not found. Please check the code."
-      : (sessionError as any).status === 410
+      : "status" in sessionError && sessionError.status === 410
         ? "This session has expired."
         : getErrorMessage(sessionError)
     : "";
@@ -46,6 +46,9 @@ export default function ParticipantSessionPage() {
 
   // Participant ID
   const [participantId, setParticipantId] = useState<string | null>(null);
+
+  // Track question ID to scroll to after submission
+  const [scrollToQuestionId, setScrollToQuestionId] = useState<string | null>(null);
 
   // Initialize participant ID and check for stored name
   useEffect(() => {
@@ -278,6 +281,7 @@ export default function ParticipantSessionPage() {
           participantId={participantId || ""}
           participantName={participantName}
           isAcceptingQuestions={isAcceptingQuestions}
+          onQuestionSubmitted={(questionId) => setScrollToQuestionId(questionId)}
         />
 
         {/* Question list with voting */}
@@ -285,6 +289,8 @@ export default function ParticipantSessionPage() {
           <QuestionList
             sessionCode={code}
             participantId={participantId || ""}
+            scrollToQuestionId={scrollToQuestionId}
+            onScrollComplete={() => setScrollToQuestionId(null)}
           />
         </div>
       </div>

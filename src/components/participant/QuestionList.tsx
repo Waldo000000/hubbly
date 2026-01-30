@@ -11,11 +11,15 @@ import QuestionCard from "./QuestionCard";
 interface QuestionListProps {
   sessionCode: string;
   participantId: string;
+  scrollToQuestionId?: string | null;
+  onScrollComplete?: () => void;
 }
 
 export default function QuestionList({
   sessionCode,
   participantId,
+  scrollToQuestionId,
+  onScrollComplete,
 }: QuestionListProps) {
   // SWR hook - handles fetching, caching, revalidation
   const {
@@ -43,13 +47,8 @@ export default function QuestionList({
   // Track previous question IDs to detect new questions
   const prevQuestionIds = useRef<Set<string>>(new Set());
 
-  // Track newly added question IDs with timestamps for highlighting
-  const [newQuestionIds, setNewQuestionIds] = useState<Map<string, number>>(
-    new Map()
-  );
-
-  // Track if we should scroll to a specific question (only for new submissions)
-  const scrollToQuestionId = useRef<string | null>(null);
+  // Track newly added question IDs for highlighting
+  const [newQuestionIds, setNewQuestionIds] = useState<Set<string>>(new Set());
 
   // Load voted questions from localStorage
   useEffect(() => {
@@ -91,80 +90,54 @@ export default function QuestionList({
     prevBeingAnsweredId.current = currentBeingAnsweredId;
   }, [questions]);
 
-  // Auto-scroll only to newly submitted questions (not on voting/re-sorting)
+  // Auto-scroll to newly submitted question
   useEffect(() => {
-    if (scrollToQuestionId.current) {
-      // Wait for animation and DOM updates before scrolling
-      const timeoutId = setTimeout(() => {
-        const element = questionRefs.current.get(scrollToQuestionId.current!);
-        if (element) {
-          element.scrollIntoView({
-            behavior: "smooth",
-            block: "center",
-          });
-        }
-        scrollToQuestionId.current = null;
-      }, 450); // Wait for framer-motion animation (350ms) + small buffer
+    if (!scrollToQuestionId) return;
 
-      return () => clearTimeout(timeoutId);
-    }
-  }, [questions]);
+    // Check if the question exists in the list
+    const questionExists = questions.some((q) => q.id === scrollToQuestionId);
+    if (!questionExists) return;
 
-  // Detect new questions and handle highlighting + scrolling
+    // Wait a bit for DOM to update and animations to settle
+    const timeoutId = setTimeout(() => {
+      const element = questionRefs.current.get(scrollToQuestionId);
+      if (element) {
+        element.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      }
+      onScrollComplete?.();
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
+  }, [scrollToQuestionId, questions, onScrollComplete]);
+
+  // Detect new questions and highlight them
   useEffect(() => {
     const currentIds = new Set(questions.map((q) => q.id));
-    const newIds = new Map<string, number>();
+    const newIds = new Set<string>();
 
     // Find questions that weren't in the previous list
     questions.forEach((q) => {
       if (!prevQuestionIds.current.has(q.id)) {
-        newIds.set(q.id, Date.now());
+        newIds.add(q.id);
       }
     });
 
-    // Check if user just submitted a question (within last 3 seconds)
-    const storageKey = `new_question_${sessionCode}`;
-    const stored = localStorage.getItem(storageKey);
-    let userSubmittedId: string | null = null;
-
-    if (stored) {
-      try {
-        const { questionId, timestamp } = JSON.parse(stored);
-        const age = Date.now() - timestamp;
-
-        // If submission was recent and question exists in list
-        if (age < 3000 && currentIds.has(questionId)) {
-          userSubmittedId = questionId;
-          // Clear the marker
-          localStorage.removeItem(storageKey);
-        } else if (age >= 3000) {
-          // Clean up old marker
-          localStorage.removeItem(storageKey);
-        }
-      } catch {
-        // Invalid data, remove it
-        localStorage.removeItem(storageKey);
-      }
-    }
-
-    // Update new question highlights
+    // Update highlights for new questions
     if (newIds.size > 0) {
       setNewQuestionIds(newIds);
 
-      // Set scroll target only for user's submitted question
-      if (userSubmittedId && currentIds.has(userSubmittedId)) {
-        scrollToQuestionId.current = userSubmittedId;
-      }
-
       // Remove highlights after 2 seconds
       setTimeout(() => {
-        setNewQuestionIds(new Map());
+        setNewQuestionIds(new Set());
       }, 2000);
     }
 
     // Update previous question IDs for next comparison
     prevQuestionIds.current = currentIds;
-  }, [questions, sessionCode]);
+  }, [questions]);
 
   // Handle vote change with optimistic updates
   const handleVoteChange = (questionId: string, voted: boolean) => {
@@ -268,9 +241,14 @@ export default function QuestionList({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{
-                  layout: { duration: 0.35, ease: "easeOut" },
+                  layout: {
+                    duration: 0.35,
+                    ease: "easeOut"
+                  },
                   opacity: { duration: 0.2 }
                 }}
+                layoutScroll={false}
+                style={{ position: "relative" }}
                 ref={(el) => {
                   if (el) {
                     questionRefs.current.set(question.id, el);

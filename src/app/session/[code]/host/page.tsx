@@ -42,7 +42,6 @@ export default function HostDashboardPage() {
   // Fetch questions with SWR
   const {
     data: questionsResponse,
-    error: questionsError,
     isLoading: isLoadingQuestions,
     mutate: mutateQuestions,
   } = useSWR<{ questions: HostQuestionResponse[] }>(
@@ -58,20 +57,43 @@ export default function HostDashboardPage() {
   const sessionData = sessionResponse?.session;
   const questions = questionsResponse?.questions || [];
 
-  // Handle question update from HostQuestionList (optimistic update)
-  const handleQuestionUpdate = (updatedQuestion: HostQuestionResponse) => {
-    // Optimistic update
+  // Handle question status update with optimistic updates
+  const handleQuestionStatusUpdate = async (
+    questionId: string,
+    newStatus: "being_answered" | "answered"
+  ) => {
+    // Optimistic update - update UI immediately
     mutateQuestions(
       (current) => {
         if (!current) return current;
         return {
           questions: current.questions.map((q) =>
-            q.id === updatedQuestion.id ? updatedQuestion : q
+            q.id === questionId ? { ...q, status: newStatus } : q
           ),
         };
       },
       { revalidate: false }
     );
+
+    try {
+      // Fire API request in background
+      const response = await fetch(`/api/questions/${questionId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      // If API fails, revert the optimistic update
+      if (!response.ok) {
+        console.error("Failed to update question status");
+        mutateQuestions(); // Force refresh from server to revert
+      }
+    } catch (error) {
+      console.error("Network error updating question:", error);
+      mutateQuestions(); // Force refresh from server to revert
+    }
   };
 
   // Check for host ownership error
@@ -79,7 +101,7 @@ export default function HostDashboardPage() {
     sessionError && session?.user?.id && sessionData?.hostId !== session.user.id
       ? "Access denied. You are not the host of this session."
       : sessionError
-        ? (sessionError as any).data?.error || sessionError.message
+        ? sessionError.message
         : "";
 
   const isLoading = isLoadingSession;
@@ -805,7 +827,7 @@ export default function HostDashboardPage() {
         ) : (
           <HostQuestionList
             questions={questions}
-            onQuestionUpdate={handleQuestionUpdate}
+            onStatusUpdate={handleQuestionStatusUpdate}
           />
         )}
       </div>

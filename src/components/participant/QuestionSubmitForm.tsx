@@ -9,6 +9,7 @@ interface QuestionSubmitFormProps {
   participantId: string;
   participantName: string;
   isAcceptingQuestions: boolean;
+  onQuestionSubmitted?: (questionId: string) => void;
 }
 
 export default function QuestionSubmitForm({
@@ -16,6 +17,7 @@ export default function QuestionSubmitForm({
   participantId,
   participantName,
   isAcceptingQuestions,
+  onQuestionSubmitted,
 }: QuestionSubmitFormProps) {
   const [content, setContent] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
@@ -88,18 +90,16 @@ export default function QuestionSubmitForm({
         return;
       }
 
-      // Success - store the new question ID for highlighting
+      // Success - notify parent and refresh questions list
       const questionId = data.question?.id;
-      if (questionId) {
-        const storageKey = `new_question_${sessionCode}`;
-        localStorage.setItem(storageKey, JSON.stringify({
-          questionId,
-          timestamp: Date.now(),
-        }));
-      }
 
       // Force immediate refresh of questions list
       mutate(`/api/sessions/${sessionCode}/questions`, undefined, { revalidate: true });
+
+      // Notify parent to scroll to this question
+      if (questionId && onQuestionSubmitted) {
+        onQuestionSubmitted(questionId);
+      }
     } catch {
       // Network error - revert optimistic update
       setContent(originalContent);

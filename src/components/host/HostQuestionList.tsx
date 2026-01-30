@@ -1,60 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import type { HostQuestionResponse } from "@/types/question";
 import { QUESTION_STATUS_LABELS, PULSE_CHECK_EMOJIS } from "@/types/question";
 import { sortQuestions } from "@/lib/question-utils";
 
 interface HostQuestionListProps {
   questions: HostQuestionResponse[];
-  onQuestionUpdate?: (updatedQuestion: HostQuestionResponse) => void;
+  onStatusUpdate: (questionId: string, newStatus: "being_answered" | "answered") => Promise<void>;
 }
 
 export default function HostQuestionList({
   questions,
-  onQuestionUpdate,
+  onStatusUpdate,
 }: HostQuestionListProps) {
-  const [updatingQuestionId, setUpdatingQuestionId] = useState<string | null>(
-    null,
-  );
   const [error, setError] = useState<string | null>(null);
-
-  // Handle status update
-  const handleStatusUpdate = async (
-    questionId: string,
-    newStatus: "being_answered" | "answered",
-  ) => {
-    setUpdatingQuestionId(questionId);
-    setError(null);
-
-    try {
-      const response = await fetch(`/api/questions/${questionId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ status: newStatus }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.message || "Failed to update question status");
-        setUpdatingQuestionId(null);
-        return;
-      }
-
-      // Call parent callback if provided
-      if (onQuestionUpdate) {
-        onQuestionUpdate(data.question);
-      }
-
-      setUpdatingQuestionId(null);
-    } catch {
-      setError("An error occurred while updating the question");
-      setUpdatingQuestionId(null);
-    }
-  };
 
   // Empty state
   if (questions.length === 0) {
@@ -128,21 +89,37 @@ export default function HostQuestionList({
         </div>
       )}
 
-      {sortedQuestions.map((question) => {
-        const isBeingAnswered = question.status === "being_answered";
-        const authorDisplay = question.isAnonymous
-          ? "Anonymous"
-          : question.authorName || "Anonymous";
+      <AnimatePresence initial={false}>
+        {sortedQuestions.map((question) => {
+          const isBeingAnswered = question.status === "being_answered";
+          const authorDisplay = question.isAnonymous
+            ? "Anonymous"
+            : question.authorName || "Anonymous";
 
-        return (
-          <div
-            key={question.id}
-            className={`rounded-lg shadow-md border-2 p-5 hover:shadow-lg transition-all ${
-              isBeingAnswered
-                ? "bg-blue-50 border-blue-500 ring-2 ring-blue-200"
-                : "bg-white border-gray-200"
-            }`}
-          >
+          return (
+            <motion.div
+              key={question.id}
+              layout
+              initial={false}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{
+                layout: {
+                  duration: 0.35,
+                  ease: "easeOut"
+                },
+                opacity: { duration: 0.2 }
+              }}
+              layoutScroll={false}
+              className={`rounded-lg shadow-md border-2 p-5 hover:shadow-lg transition-colors ${
+                isBeingAnswered
+                  ? "bg-blue-50 border-blue-500"
+                  : "bg-white border-gray-200"
+              }`}
+              style={isBeingAnswered ? {
+                boxShadow: "0 0 0 2px rgb(191 219 254)" // Simulates ring-2 ring-blue-200 without affecting layout
+              } : undefined}
+            >
             <div className="flex flex-row gap-4 items-start">
               {/* Vote count - left side with prominent display */}
               <div className="flex flex-col items-center gap-1 flex-shrink-0">
@@ -184,38 +161,47 @@ export default function HostQuestionList({
                   {question.content}
                 </p>
 
-                {/* Pulse check stats for answered questions */}
-                {question.status === "answered" && question.pulseCheckStats && (
-                  <div className="mt-3 flex items-center gap-3 text-sm bg-gray-50 rounded-lg p-3">
-                    <span className="text-gray-600 font-medium">Feedback:</span>
-                    <span className="flex items-center gap-1">
-                      {PULSE_CHECK_EMOJIS.helpful}{" "}
-                      <span className="font-medium">
-                        {question.pulseCheckStats.helpful}
+                {/* Pulse check stats - always reserve space to prevent height changes */}
+                <div className="mt-3 h-[52px]">
+                  {question.status === "answered" && question.pulseCheckStats ? (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.2 }}
+                      className="flex items-center gap-3 text-sm bg-gray-50 rounded-lg p-3 h-full"
+                    >
+                      <span className="text-gray-600 font-medium">Feedback:</span>
+                      <span className="flex items-center gap-1">
+                        {PULSE_CHECK_EMOJIS.helpful}{" "}
+                        <span className="font-medium">
+                          {question.pulseCheckStats.helpful}
+                        </span>
                       </span>
-                    </span>
-                    <span className="flex items-center gap-1">
-                      {PULSE_CHECK_EMOJIS.neutral}{" "}
-                      <span className="font-medium">
-                        {question.pulseCheckStats.neutral}
+                      <span className="flex items-center gap-1">
+                        {PULSE_CHECK_EMOJIS.neutral}{" "}
+                        <span className="font-medium">
+                          {question.pulseCheckStats.neutral}
+                        </span>
                       </span>
-                    </span>
-                    <span className="flex items-center gap-1">
-                      {PULSE_CHECK_EMOJIS.not_helpful}{" "}
-                      <span className="font-medium">
-                        {question.pulseCheckStats.not_helpful}
+                      <span className="flex items-center gap-1">
+                        {PULSE_CHECK_EMOJIS.not_helpful}{" "}
+                        <span className="font-medium">
+                          {question.pulseCheckStats.not_helpful}
+                        </span>
                       </span>
-                    </span>
-                    {question.pulseCheckStats.helpful +
-                      question.pulseCheckStats.neutral +
-                      question.pulseCheckStats.not_helpful ===
-                      0 && (
-                      <span className="text-gray-500 italic ml-2">
-                        No feedback yet
-                      </span>
-                    )}
-                  </div>
-                )}
+                      {question.pulseCheckStats.helpful +
+                        question.pulseCheckStats.neutral +
+                        question.pulseCheckStats.not_helpful ===
+                        0 && (
+                        <span className="text-gray-500 italic ml-2">
+                          No feedback yet
+                        </span>
+                      )}
+                    </motion.div>
+                  ) : (
+                    <div className="h-full" />
+                  )}
+                </div>
 
                 {/* Action buttons */}
                 <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200">
@@ -223,45 +209,38 @@ export default function HostQuestionList({
                     Mark as:
                   </span>
                   <button
-                    onClick={() =>
-                      handleStatusUpdate(question.id, "being_answered")
-                    }
-                    disabled={
-                      updatingQuestionId === question.id ||
-                      question.status === "being_answered"
-                    }
+                    onClick={() => {
+                      setError(null);
+                      onStatusUpdate(question.id, "being_answered");
+                    }}
                     className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                       question.status === "being_answered"
-                        ? "bg-blue-100 text-blue-800 cursor-not-allowed"
+                        ? "bg-blue-100 text-blue-800"
                         : "bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200"
-                    } ${updatingQuestionId === question.id ? "opacity-50 cursor-wait" : ""}`}
+                    }`}
                   >
-                    {updatingQuestionId === question.id
-                      ? "Updating..."
-                      : "Being Answered"}
+                    Being Answered
                   </button>
                   <button
-                    onClick={() => handleStatusUpdate(question.id, "answered")}
-                    disabled={
-                      updatingQuestionId === question.id ||
-                      question.status === "answered"
-                    }
+                    onClick={() => {
+                      setError(null);
+                      onStatusUpdate(question.id, "answered");
+                    }}
                     className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
                       question.status === "answered"
-                        ? "bg-green-100 text-green-800 cursor-not-allowed"
+                        ? "bg-green-100 text-green-800"
                         : "bg-green-50 text-green-700 hover:bg-green-100 border border-green-200"
-                    } ${updatingQuestionId === question.id ? "opacity-50 cursor-wait" : ""}`}
+                    }`}
                   >
-                    {updatingQuestionId === question.id
-                      ? "Updating..."
-                      : "Answered"}
+                    Answered
                   </button>
                 </div>
               </div>
             </div>
-          </div>
-        );
-      })}
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
     </div>
   );
 }
