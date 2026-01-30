@@ -281,12 +281,10 @@ export default function QuestionList({
         duration={350}
         easing="ease-out"
         staggerDelayBy={0}
-        appearAnimation="fade"
-        enterAnimation="fade"
-        leaveAnimation="fade"
-        maintainContainerHeight={false}
-        verticalAlignment="top"
-        disableAllAnimations={false}
+        appearAnimation={false}
+        enterAnimation={false}
+        leaveAnimation={false}
+        maintainContainerHeight={true}
         typeName="div"
         className="flex flex-col gap-4"
       >
