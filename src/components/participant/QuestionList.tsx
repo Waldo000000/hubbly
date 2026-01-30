@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import useSWR from "swr";
-import FlipMove from "react-flip-move";
+import { motion, AnimatePresence } from "framer-motion";
 import type { GetQuestionsResponse } from "@/types/question";
 import { sortQuestions } from "@/lib/question-utils";
 import { fetcher } from "@/lib/swr-utils";
@@ -51,9 +51,6 @@ export default function QuestionList({
   // Track if we should scroll to a specific question (only for new submissions)
   const scrollToQuestionId = useRef<string | null>(null);
 
-  // Track scroll position to prevent unwanted scrolling during animations
-  const preventScrollAdjustment = useRef(false);
-
   // Load voted questions from localStorage
   useEffect(() => {
     const storageKey = `voted_questions_${sessionCode}`;
@@ -96,20 +93,18 @@ export default function QuestionList({
 
   // Auto-scroll only to newly submitted questions (not on voting/re-sorting)
   useEffect(() => {
-    if (scrollToQuestionId.current && !preventScrollAdjustment.current) {
-      // Wait for FlipMove animation to complete before scrolling
+    if (scrollToQuestionId.current) {
+      // Wait for animation and DOM updates before scrolling
       const timeoutId = setTimeout(() => {
-        if (!preventScrollAdjustment.current) {
-          const element = questionRefs.current.get(scrollToQuestionId.current!);
-          if (element) {
-            element.scrollIntoView({
-              behavior: "smooth",
-              block: "center",
-            });
-          }
-          scrollToQuestionId.current = null;
+        const element = questionRefs.current.get(scrollToQuestionId.current!);
+        if (element) {
+          element.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
         }
-      }, 400); // Wait for FlipMove animation (350ms) + small buffer
+        scrollToQuestionId.current = null;
+      }, 450); // Wait for framer-motion animation (350ms) + small buffer
 
       return () => clearTimeout(timeoutId);
     }
@@ -173,9 +168,6 @@ export default function QuestionList({
 
   // Handle vote change with optimistic updates
   const handleVoteChange = (questionId: string, voted: boolean) => {
-    // Save current scroll position before any updates
-    const currentScrollY = window.scrollY;
-
     const newVotedQuestions = new Set(votedQuestions);
 
     if (voted) {
@@ -192,9 +184,6 @@ export default function QuestionList({
       storageKey,
       JSON.stringify(Array.from(newVotedQuestions)),
     );
-
-    // Prevent scroll adjustment during animation
-    preventScrollAdjustment.current = true;
 
     // Optimistic update with SWR
     // Update UI immediately, then revalidate from server
@@ -213,16 +202,6 @@ export default function QuestionList({
       },
       { revalidate: false } // Don't refetch immediately, wait for next interval
     );
-
-    // Restore scroll position after React updates and FlipMove animates
-    requestAnimationFrame(() => {
-      window.scrollTo(0, currentScrollY);
-
-      // Keep scroll locked during animation
-      setTimeout(() => {
-        preventScrollAdjustment.current = false;
-      }, 400); // Match FlipMove duration + buffer
-    });
   };
 
   // Loading state
@@ -277,42 +256,42 @@ export default function QuestionList({
         </span>
       </div>
 
-      <FlipMove
-        duration={350}
-        easing="ease-out"
-        staggerDelayBy={0}
-        appearAnimation={false}
-        enterAnimation={false}
-        leaveAnimation={false}
-        maintainContainerHeight={true}
-        typeName="div"
-        className="flex flex-col gap-4"
-      >
-        {sortedQuestions.map((question) => {
-          const isNew = newQuestionIds.has(question.id);
-          return (
-            <div
-              key={question.id}
-              ref={(el) => {
-                if (el) {
-                  questionRefs.current.set(question.id, el);
-                } else {
-                  questionRefs.current.delete(question.id);
-                }
-              }}
-              className={isNew ? "new-question-highlight" : ""}
-            >
-              <QuestionCard
-                question={question}
-                participantId={participantId}
-                sessionCode={sessionCode}
-                isVotedByMe={votedQuestions.has(question.id)}
-                onVoteChange={handleVoteChange}
-              />
-            </div>
-          );
-        })}
-      </FlipMove>
+      <div className="flex flex-col gap-4">
+        <AnimatePresence initial={false}>
+          {sortedQuestions.map((question) => {
+            const isNew = newQuestionIds.has(question.id);
+            return (
+              <motion.div
+                key={question.id}
+                layout
+                initial={false}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{
+                  layout: { duration: 0.35, ease: "easeOut" },
+                  opacity: { duration: 0.2 }
+                }}
+                ref={(el) => {
+                  if (el) {
+                    questionRefs.current.set(question.id, el);
+                  } else {
+                    questionRefs.current.delete(question.id);
+                  }
+                }}
+                className={isNew ? "new-question-highlight" : ""}
+              >
+                <QuestionCard
+                  question={question}
+                  participantId={participantId}
+                  sessionCode={sessionCode}
+                  isVotedByMe={votedQuestions.has(question.id)}
+                  onVoteChange={handleVoteChange}
+                />
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }
