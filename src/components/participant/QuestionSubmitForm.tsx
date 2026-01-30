@@ -43,10 +43,48 @@ export default function QuestionSubmitForm({
     const originalContent = content;
     const originalIsAnonymous = isAnonymous;
 
-    // Optimistic update: Clear form immediately
+    // Generate temporary ID for optimistic update
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const now = new Date().toISOString();
+
+    // Create optimistic question object
+    const optimisticQuestion = {
+      id: tempId,
+      sessionId: sessionCode,
+      participantId,
+      authorName: originalIsAnonymous ? undefined : participantName,
+      content: originalContent.trim(),
+      voteCount: 0,
+      status: "approved" as const,
+      isAnonymous: originalIsAnonymous,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    // Optimistic update: Clear form AND add question to list immediately
     setContent("");
     setIsAnonymous(false);
     setErrorMessage("");
+
+    // Add optimistic question to the list
+    mutate(
+      `/api/sessions/${sessionCode}/questions`,
+      (currentData: { questions: typeof optimisticQuestion[] } | undefined) => {
+        if (!currentData) {
+          return { questions: [optimisticQuestion], total: 1 };
+        }
+        return {
+          questions: [optimisticQuestion, ...currentData.questions],
+          total: currentData.questions.length + 1,
+        };
+      },
+      { revalidate: false }
+    );
+
+    // Notify parent to scroll to the optimistic question
+    if (onQuestionSubmitted) {
+      onQuestionSubmitted(tempId);
+    }
 
     try {
       const requestBody: SubmitQuestionRequest = {
@@ -69,6 +107,19 @@ export default function QuestionSubmitForm({
 
       // If API fails, revert the optimistic update
       if (!response.ok) {
+        // Remove the optimistic question from the list
+        mutate(
+          `/api/sessions/${sessionCode}/questions`,
+          (currentData: { questions: typeof optimisticQuestion[] } | undefined) => {
+            if (!currentData) return currentData;
+            return {
+              questions: currentData.questions.filter((q) => q.id !== tempId),
+              total: currentData.questions.length - 1,
+            };
+          },
+          { revalidate: false }
+        );
+
         // Restore form content
         setContent(originalContent);
         setIsAnonymous(originalIsAnonymous);
@@ -90,18 +141,41 @@ export default function QuestionSubmitForm({
         return;
       }
 
-      // Success - notify parent and refresh questions list
-      const questionId = data.question?.id;
+      // Success - replace optimistic question with real one
+      const realQuestion = data.question;
 
-      // Force immediate refresh of questions list
-      mutate(`/api/sessions/${sessionCode}/questions`, undefined, { revalidate: true });
+      mutate(
+        `/api/sessions/${sessionCode}/questions`,
+        (currentData: { questions: typeof optimisticQuestion[] } | undefined) => {
+          if (!currentData) return currentData;
+          return {
+            questions: currentData.questions.map((q) =>
+              q.id === tempId ? realQuestion : q
+            ),
+            total: currentData.questions.length,
+          };
+        },
+        { revalidate: false }
+      );
 
-      // Notify parent to scroll to this question
-      if (questionId && onQuestionSubmitted) {
-        onQuestionSubmitted(questionId);
+      // Update scroll target to real question ID
+      if (realQuestion?.id && onQuestionSubmitted) {
+        onQuestionSubmitted(realQuestion.id);
       }
     } catch {
       // Network error - revert optimistic update
+      mutate(
+        `/api/sessions/${sessionCode}/questions`,
+        (currentData: { questions: typeof optimisticQuestion[] } | undefined) => {
+          if (!currentData) return currentData;
+          return {
+            questions: currentData.questions.filter((q) => q.id !== tempId),
+            total: currentData.questions.length - 1,
+          };
+        },
+        { revalidate: false }
+      );
+
       setContent(originalContent);
       setIsAnonymous(originalIsAnonymous);
       setErrorMessage(
