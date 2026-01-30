@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import useSWR from "swr";
 import type { GetQuestionsResponse } from "@/types/question";
 import { sortQuestions } from "@/lib/question-utils";
 import QuestionCard from "./QuestionCard";
@@ -14,11 +15,31 @@ export default function QuestionList({
   sessionCode,
   participantId,
 }: QuestionListProps) {
-  const [questions, setQuestions] = useState<GetQuestionsResponse["questions"]>(
-    [],
-  );
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
+  // Fetcher function for SWR
+  const fetcher = async (url: string) => {
+    const response = await fetch(url);
+    if (!response.ok) {
+      const data = await response.json();
+      throw new Error(data.error || "Failed to load questions");
+    }
+    return response.json();
+  };
+
+  // SWR hook - handles fetching, caching, revalidation
+  const {
+    data,
+    error: swrError,
+    isLoading,
+    mutate,
+  } = useSWR<GetQuestionsResponse>(`/api/sessions/${sessionCode}/questions`, fetcher, {
+    refreshInterval: 10000, // Poll every 10 seconds
+    revalidateOnFocus: true, // Refetch when user returns to tab
+    dedupingInterval: 2000, // Deduplicate requests within 2s
+  });
+
+  const questions = data?.questions || [];
+  const error = swrError?.message || "";
+
   const [votedQuestions, setVotedQuestions] = useState<Set<string>>(new Set());
 
   // Track refs for each question card for auto-scroll
@@ -39,43 +60,6 @@ export default function QuestionList({
         // Invalid data, ignore
       }
     }
-  }, [sessionCode]);
-
-  // Fetch questions from API
-  const fetchQuestions = async () => {
-    try {
-      setError("");
-
-      const response = await fetch(`/api/sessions/${sessionCode}/questions`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || "Failed to load questions");
-        return;
-      }
-
-      setQuestions(data.questions);
-    } catch {
-      setError("Network error. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Initial fetch
-  useEffect(() => {
-    fetchQuestions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionCode]);
-
-  // Auto-refresh polling every 10 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchQuestions();
-    }, 10000); // 10 seconds
-
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionCode]);
 
   // Auto-scroll to "being_answered" question when it changes
@@ -104,7 +88,7 @@ export default function QuestionList({
     prevBeingAnsweredId.current = currentBeingAnsweredId;
   }, [questions]);
 
-  // Handle vote change
+  // Handle vote change with optimistic updates
   const handleVoteChange = (questionId: string, voted: boolean) => {
     const newVotedQuestions = new Set(votedQuestions);
 
@@ -123,13 +107,22 @@ export default function QuestionList({
       JSON.stringify(Array.from(newVotedQuestions)),
     );
 
-    // Update question vote count locally
-    setQuestions((prev) =>
-      prev.map((q) =>
-        q.id === questionId
-          ? { ...q, voteCount: q.voteCount + (voted ? 1 : -1) }
-          : q,
-      ),
+    // Optimistic update with SWR
+    // Update UI immediately, then revalidate from server
+    mutate(
+      (currentData) => {
+        if (!currentData) return currentData;
+
+        return {
+          ...currentData,
+          questions: currentData.questions.map((q) =>
+            q.id === questionId
+              ? { ...q, voteCount: q.voteCount + (voted ? 1 : -1) }
+              : q
+          ),
+        };
+      },
+      { revalidate: false } // Don't refetch immediately, wait for next interval
     );
   };
 
