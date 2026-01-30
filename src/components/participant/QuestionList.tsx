@@ -51,6 +51,9 @@ export default function QuestionList({
   // Track if we should scroll to a specific question (only for new submissions)
   const scrollToQuestionId = useRef<string | null>(null);
 
+  // Track scroll position to prevent unwanted scrolling during animations
+  const preventScrollAdjustment = useRef(false);
+
   // Load voted questions from localStorage
   useEffect(() => {
     const storageKey = `voted_questions_${sessionCode}`;
@@ -93,17 +96,22 @@ export default function QuestionList({
 
   // Auto-scroll only to newly submitted questions (not on voting/re-sorting)
   useEffect(() => {
-    if (scrollToQuestionId.current && questionRefs.current.has(scrollToQuestionId.current)) {
-      setTimeout(() => {
-        const element = questionRefs.current.get(scrollToQuestionId.current!);
-        if (element) {
-          element.scrollIntoView({
-            behavior: "smooth",
-            block: "center",
-          });
+    if (scrollToQuestionId.current && !preventScrollAdjustment.current) {
+      // Wait for FlipMove animation to complete before scrolling
+      const timeoutId = setTimeout(() => {
+        if (!preventScrollAdjustment.current) {
+          const element = questionRefs.current.get(scrollToQuestionId.current!);
+          if (element) {
+            element.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+          }
+          scrollToQuestionId.current = null;
         }
-        scrollToQuestionId.current = null;
-      }, 100); // Small delay to ensure DOM is updated
+      }, 400); // Wait for FlipMove animation (350ms) + small buffer
+
+      return () => clearTimeout(timeoutId);
     }
   }, [questions]);
 
@@ -165,6 +173,9 @@ export default function QuestionList({
 
   // Handle vote change with optimistic updates
   const handleVoteChange = (questionId: string, voted: boolean) => {
+    // Save current scroll position before any updates
+    const currentScrollY = window.scrollY;
+
     const newVotedQuestions = new Set(votedQuestions);
 
     if (voted) {
@@ -181,6 +192,9 @@ export default function QuestionList({
       storageKey,
       JSON.stringify(Array.from(newVotedQuestions)),
     );
+
+    // Prevent scroll adjustment during animation
+    preventScrollAdjustment.current = true;
 
     // Optimistic update with SWR
     // Update UI immediately, then revalidate from server
@@ -199,6 +213,16 @@ export default function QuestionList({
       },
       { revalidate: false } // Don't refetch immediately, wait for next interval
     );
+
+    // Restore scroll position after React updates and FlipMove animates
+    requestAnimationFrame(() => {
+      window.scrollTo(0, currentScrollY);
+
+      // Keep scroll locked during animation
+      setTimeout(() => {
+        preventScrollAdjustment.current = false;
+      }, 400); // Match FlipMove duration + buffer
+    });
   };
 
   // Loading state
@@ -260,6 +284,9 @@ export default function QuestionList({
         appearAnimation="fade"
         enterAnimation="fade"
         leaveAnimation="fade"
+        maintainContainerHeight={false}
+        verticalAlignment="top"
+        disableAllAnimations={false}
         typeName="div"
         className="flex flex-col gap-4"
       >
