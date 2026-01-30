@@ -5,27 +5,13 @@ import { useParams } from "next/navigation";
 import useSWR from "swr";
 import type { GetSessionResponse } from "@/types/session";
 import { getOrCreateParticipantId } from "@/lib/participant-id";
+import { fetcher, getErrorMessage } from "@/lib/swr-utils";
 import QuestionSubmitForm from "@/components/participant/QuestionSubmitForm";
 import QuestionList from "@/components/participant/QuestionList";
 
 export default function ParticipantSessionPage() {
   const params = useParams();
   const code = params?.code as string;
-
-  // Fetcher function for SWR
-  const fetcher = async (url: string) => {
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (!response.ok) {
-      const error = new Error(data.error || "Failed to fetch session");
-      (error as any).status = response.status;
-      (error as any).data = data;
-      throw error;
-    }
-
-    return data;
-  };
 
   // Fetch session data with SWR
   const {
@@ -44,13 +30,13 @@ export default function ParticipantSessionPage() {
 
   const sessionData = sessionResponse?.session;
 
-  // Format error message based on status code
+  // Format error message with custom messages for session-specific errors
   const error = sessionError
     ? (sessionError as any).status === 404
       ? "Session not found. Please check the code."
       : (sessionError as any).status === 410
         ? "This session has expired."
-        : (sessionError as any).data?.error || sessionError.message || "Failed to load session"
+        : getErrorMessage(sessionError)
     : "";
 
   // Name entry state

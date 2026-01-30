@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import useSWR from "swr";
 import type { GetQuestionsResponse } from "@/types/question";
 import { sortQuestions } from "@/lib/question-utils";
+import { fetcher } from "@/lib/swr-utils";
 import QuestionCard from "./QuestionCard";
 
 interface QuestionListProps {
@@ -15,16 +16,6 @@ export default function QuestionList({
   sessionCode,
   participantId,
 }: QuestionListProps) {
-  // Fetcher function for SWR
-  const fetcher = async (url: string) => {
-    const response = await fetch(url);
-    if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.error || "Failed to load questions");
-    }
-    return response.json();
-  };
-
   // SWR hook - handles fetching, caching, revalidation
   const {
     data,

@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import useSWR from "swr";
 import type { GetSessionResponse } from "@/types/session";
 import type { HostQuestionResponse } from "@/types/question";
+import { fetcher } from "@/lib/swr-utils";
 import HostQuestionList from "@/components/host/HostQuestionList";
 
 export default function HostDashboardPage() {
@@ -21,21 +22,6 @@ export default function HostDashboardPage() {
   if (status === "unauthenticated") {
     signIn("google");
   }
-
-  // Fetcher function for SWR
-  const fetcher = async (url: string) => {
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (!response.ok) {
-      const error = new Error(data.error || "Failed to fetch data");
-      (error as any).status = response.status;
-      (error as any).data = data;
-      throw error;
-    }
-
-    return data;
-  };
 
   // Fetch session data with SWR
   const {
