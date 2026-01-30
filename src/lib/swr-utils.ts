@@ -3,17 +3,25 @@
  */
 
 /**
+ * Custom error type for SWR fetch errors
+ */
+interface FetchError extends Error {
+  status: number;
+  data: Record<string, unknown>;
+}
+
+/**
  * Standard fetcher function for SWR
  * Throws an error with status code and data attached for error handling
  */
-export const fetcher = async <T = any>(url: string): Promise<T> => {
+export const fetcher = async <T = unknown>(url: string): Promise<T> => {
   const response = await fetch(url);
   const data = await response.json();
 
   if (!response.ok) {
-    const error = new Error(data.error || data.message || "Failed to fetch data");
-    (error as any).status = response.status;
-    (error as any).data = data;
+    const error = new Error(data.error || data.message || "Failed to fetch data") as FetchError;
+    error.status = response.status;
+    error.data = data;
     throw error;
   }
 
@@ -32,26 +40,33 @@ export const defaultSWRConfig = {
 /**
  * Helper to format error messages from SWR errors
  */
-export function getErrorMessage(error: any): string {
+export function getErrorMessage(error: unknown): string {
   if (!error) return "";
 
-  // Handle status-specific errors
-  if (error.status === 404) {
-    return error.data?.error || "Resource not found";
+  // Type guard for Error objects
+  if (!(error instanceof Error)) {
+    return "An error occurred";
   }
-  if (error.status === 401) {
+
+  const fetchError = error as Partial<FetchError>;
+
+  // Handle status-specific errors
+  if (fetchError.status === 404) {
+    return fetchError.data?.error as string || "Resource not found";
+  }
+  if (fetchError.status === 401) {
     return "Unauthorized. Please sign in.";
   }
-  if (error.status === 403) {
+  if (fetchError.status === 403) {
     return "Access denied.";
   }
-  if (error.status === 410) {
+  if (fetchError.status === 410) {
     return "Resource has expired.";
   }
-  if (error.status === 429) {
+  if (fetchError.status === 429) {
     return "Too many requests. Please try again later.";
   }
 
   // Default to error message or data
-  return error.data?.error || error.message || "An error occurred";
+  return (fetchError.data?.error as string) || error.message || "An error occurred";
 }
