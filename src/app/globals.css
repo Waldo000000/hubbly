@@ -11,3 +11,18 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: #f9fafb;
 }
+
+/* New question highlight animation */
+@keyframes highlightFade {
+  0% {
+    background-color: rgba(59, 130, 246, 0.15); /* blue-500 at 15% opacity */
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+.new-question-highlight {
+  animation: highlightFade 2s ease-out;
+  border-radius: 0.5rem;
+}

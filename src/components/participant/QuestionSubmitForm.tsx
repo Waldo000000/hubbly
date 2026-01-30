@@ -19,7 +19,6 @@ export default function QuestionSubmitForm({
 }: QuestionSubmitFormProps) {
   const [content, setContent] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
   const maxCharacters = 100000;
@@ -42,19 +41,10 @@ export default function QuestionSubmitForm({
     const originalContent = content;
     const originalIsAnonymous = isAnonymous;
 
-    // Optimistic update: Clear form and show success immediately
+    // Optimistic update: Clear form immediately
     setContent("");
     setIsAnonymous(false);
     setErrorMessage("");
-    setSuccessMessage("Question submitted successfully!");
-
-    // Clear success message after 3 seconds
-    const successTimeout = setTimeout(() => {
-      setSuccessMessage("");
-    }, 3000);
-
-    // Trigger SWR revalidation globally (will refetch questions in QuestionList)
-    mutate(`/api/sessions/${sessionCode}/questions`);
 
     try {
       const requestBody: SubmitQuestionRequest = {
@@ -64,7 +54,7 @@ export default function QuestionSubmitForm({
         isAnonymous: originalIsAnonymous,
       };
 
-      // Fire API request in background
+      // Fire API request
       const response = await fetch(`/api/sessions/${sessionCode}/questions`, {
         method: "POST",
         headers: {
@@ -77,9 +67,6 @@ export default function QuestionSubmitForm({
 
       // If API fails, revert the optimistic update
       if (!response.ok) {
-        clearTimeout(successTimeout);
-        setSuccessMessage("");
-
         // Restore form content
         setContent(originalContent);
         setIsAnonymous(originalIsAnonymous);
@@ -98,11 +85,23 @@ export default function QuestionSubmitForm({
             data.message || "Failed to submit question. Please try again.",
           );
         }
+        return;
       }
+
+      // Success - store the new question ID for highlighting
+      const questionId = data.question?.id;
+      if (questionId) {
+        const storageKey = `new_question_${sessionCode}`;
+        localStorage.setItem(storageKey, JSON.stringify({
+          questionId,
+          timestamp: Date.now(),
+        }));
+      }
+
+      // Force immediate refresh of questions list
+      mutate(`/api/sessions/${sessionCode}/questions`, undefined, { revalidate: true });
     } catch {
       // Network error - revert optimistic update
-      clearTimeout(successTimeout);
-      setSuccessMessage("");
       setContent(originalContent);
       setIsAnonymous(originalIsAnonymous);
       setErrorMessage(
@@ -164,13 +163,6 @@ export default function QuestionSubmitForm({
             {participantName !== "Anonymous" && "(hide my name)"}
           </label>
         </div>
-
-        {/* Success message */}
-        {successMessage && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <p className="text-green-800 text-sm">{successMessage}</p>
-          </div>
-        )}
 
         {/* Error message */}
         {errorMessage && (

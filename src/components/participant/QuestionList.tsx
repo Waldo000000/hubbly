@@ -39,6 +39,14 @@ export default function QuestionList({
   // Track the ID of the question currently being answered
   const prevBeingAnsweredId = useRef<string | null>(null);
 
+  // Track previous question IDs to detect new questions
+  const prevQuestionIds = useRef<Set<string>>(new Set());
+
+  // Track newly added question IDs with timestamps for highlighting
+  const [newQuestionIds, setNewQuestionIds] = useState<Map<string, number>>(
+    new Map()
+  );
+
   // Load voted questions from localStorage
   useEffect(() => {
     const storageKey = `voted_questions_${sessionCode}`;
@@ -78,6 +86,70 @@ export default function QuestionList({
     // Update the previous being_answered ID
     prevBeingAnsweredId.current = currentBeingAnsweredId;
   }, [questions]);
+
+  // Detect new questions and handle highlighting + scrolling
+  useEffect(() => {
+    const currentIds = new Set(questions.map((q) => q.id));
+    const newIds = new Map<string, number>();
+
+    // Find questions that weren't in the previous list
+    questions.forEach((q) => {
+      if (!prevQuestionIds.current.has(q.id)) {
+        newIds.set(q.id, Date.now());
+      }
+    });
+
+    // Check if user just submitted a question (within last 3 seconds)
+    const storageKey = `new_question_${sessionCode}`;
+    const stored = localStorage.getItem(storageKey);
+    let userSubmittedId: string | null = null;
+
+    if (stored) {
+      try {
+        const { questionId, timestamp } = JSON.parse(stored);
+        const age = Date.now() - timestamp;
+
+        // If submission was recent and question exists in list
+        if (age < 3000 && currentIds.has(questionId)) {
+          userSubmittedId = questionId;
+          // Clear the marker
+          localStorage.removeItem(storageKey);
+        } else if (age >= 3000) {
+          // Clean up old marker
+          localStorage.removeItem(storageKey);
+        }
+      } catch {
+        // Invalid data, remove it
+        localStorage.removeItem(storageKey);
+      }
+    }
+
+    // Update new question highlights
+    if (newIds.size > 0) {
+      setNewQuestionIds(newIds);
+
+      // Auto-scroll to user's submitted question
+      if (userSubmittedId && questionRefs.current.has(userSubmittedId)) {
+        setTimeout(() => {
+          const element = questionRefs.current.get(userSubmittedId!);
+          if (element) {
+            element.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+          }
+        }, 100); // Small delay to ensure DOM is updated
+      }
+
+      // Remove highlights after 2 seconds
+      setTimeout(() => {
+        setNewQuestionIds(new Map());
+      }, 2000);
+    }
+
+    // Update previous question IDs for next comparison
+    prevQuestionIds.current = currentIds;
+  }, [questions, sessionCode]);
 
   // Handle vote change with optimistic updates
   const handleVoteChange = (questionId: string, voted: boolean) => {
@@ -170,26 +242,30 @@ export default function QuestionList({
       </div>
 
       <div className="flex flex-col gap-4">
-        {sortedQuestions.map((question) => (
-          <div
-            key={question.id}
-            ref={(el) => {
-              if (el) {
-                questionRefs.current.set(question.id, el);
-              } else {
-                questionRefs.current.delete(question.id);
-              }
-            }}
-          >
-            <QuestionCard
-              question={question}
-              participantId={participantId}
-              sessionCode={sessionCode}
-              isVotedByMe={votedQuestions.has(question.id)}
-              onVoteChange={handleVoteChange}
-            />
-          </div>
-        ))}
+        {sortedQuestions.map((question) => {
+          const isNew = newQuestionIds.has(question.id);
+          return (
+            <div
+              key={question.id}
+              ref={(el) => {
+                if (el) {
+                  questionRefs.current.set(question.id, el);
+                } else {
+                  questionRefs.current.delete(question.id);
+                }
+              }}
+              className={isNew ? "new-question-highlight" : ""}
+            >
+              <QuestionCard
+                question={question}
+                participantId={participantId}
+                sessionCode={sessionCode}
+                isVotedByMe={votedQuestions.has(question.id)}
+                onVoteChange={handleVoteChange}
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );
