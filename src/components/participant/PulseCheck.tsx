@@ -151,8 +151,8 @@ export default function PulseCheck({
             className={`flex-1 ${option.color} hover:opacity-80 transition-opacity rounded-md py-1.5 px-2 flex flex-col items-center gap-0.5`}
             aria-label={`Rate as ${option.label}`}
           >
-            <span className="text-base leading-none">{option.emoji}</span>
-            <span className="text-[10px] font-medium text-gray-700 leading-tight">
+            <span className="text-base leading-tight">{option.emoji}</span>
+            <span className="text-xs font-medium text-gray-700 leading-tight">
               {option.label}
             </span>
           </button>
