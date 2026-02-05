@@ -119,25 +119,25 @@ async function main() {
     prisma.vote.create({
       data: {
         questionId: questions[0].id,
-        voterIp: '192.168.1.1'
+        participantId: 'participant-1'
       }
     }),
     prisma.vote.create({
       data: {
         questionId: questions[0].id,
-        voterIp: '192.168.1.2'
+        participantId: 'participant-2'
       }
     }),
     prisma.vote.create({
       data: {
         questionId: questions[1].id,
-        voterIp: '192.168.1.1'
+        participantId: 'participant-1'
       }
     }),
     prisma.vote.create({
       data: {
         questionId: questions[4].id,
-        voterIp: '192.168.1.3'
+        participantId: 'participant-3'
       }
     })
   ])

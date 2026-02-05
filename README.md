@@ -2,6 +2,20 @@
 
 Real-time Q&A platform for events, meetings, and presentations.
 
+## Features
+
+### Participant View with Voting
+
+Participants can view and vote on questions in real-time. The voting interface allows users to upvote questions they find most relevant, helping prioritize the most important topics.
+
+![Participant view with voting interface](https://github.com/user-attachments/assets/3959fca2-034f-4455-b1c9-c48910245658)
+
+### Pulse Check Feedback
+
+After questions are answered, participants can provide quick feedback using emoji reactions (💚 Helpful, 💛 Neutral, 🔴 Not helpful) to gauge the quality and usefulness of the response.
+
+![Pulse check feedback interface](https://github.com/user-attachments/assets/fd08ab10-3a90-43c5-b372-41dd11eb15d5)
+
 ## Quick Start
 
 1. **Clone and install:**
