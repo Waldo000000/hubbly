@@ -123,13 +123,10 @@ export default function PulseCheck({
     );
     return (
       <div className="mt-3 pt-3 border-t border-gray-200">
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <span className="text-green-600">✓</span>
+        <div className="flex items-center gap-1.5 text-xs text-gray-600">
+          <span className="text-green-600 text-sm">✓</span>
           <span>
-            You rated this answer as:{" "}
-            <span className="font-medium">
-              {selectedOption?.emoji} {selectedOption?.label}
-            </span>
+            Rated: {selectedOption?.emoji} {selectedOption?.label}
           </span>
         </div>
       </div>
@@ -138,7 +135,7 @@ export default function PulseCheck({
 
   return (
     <div className="mt-3 pt-3 border-t border-gray-200">
-      <p className="text-sm text-gray-700 mb-2">Did this answer help?</p>
+      <p className="text-xs text-gray-600 mb-2">Did this answer help?</p>
 
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-2 mb-2">
@@ -146,16 +143,16 @@ export default function PulseCheck({
         </div>
       )}
 
-      <div className="flex gap-2">
+      <div className="flex gap-1.5">
         {FEEDBACK_OPTIONS.map((option) => (
           <button
             key={option.type}
             onClick={() => handleFeedbackSubmit(option.type)}
-            className={`flex-1 ${option.color} hover:opacity-80 transition-opacity rounded-lg py-3 px-2 flex flex-col items-center gap-1 min-h-[56px]`}
+            className={`flex-1 ${option.color} hover:opacity-80 transition-opacity rounded-md py-1.5 px-2 flex flex-col items-center gap-0.5`}
             aria-label={`Rate as ${option.label}`}
           >
-            <span className="text-2xl">{option.emoji}</span>
-            <span className="text-xs font-medium text-gray-700">
+            <span className="text-base leading-tight">{option.emoji}</span>
+            <span className="text-xs font-medium text-gray-700 leading-tight">
               {option.label}
             </span>
           </button>
