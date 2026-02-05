@@ -2,6 +2,23 @@
 
 Real-time Q&A platform for events, meetings, and presentations.
 
+## Features
+
+### Pulse Check Feedback
+
+Participants can provide feedback on answered questions with a compact, accessible pulse check interface:
+
+![Pulse Check Overview](https://github.com/user-attachments/assets/1a961b66-f86b-4099-819f-3813c574c38d)
+
+**Key Features:**
+- **Compact Design**: Buttons reduced from 56px to ~36px height (35% smaller)
+- **Subtle Appearance**: Smaller emojis (16px) and tighter spacing for less visual dominance
+- **WCAG Compliant**: Maintains 12px minimum text size for accessibility
+- **Consistent Layout**: Card height remains stable whether showing buttons or confirmation
+- **Three Options**: Helpful (💚), Neutral (💛), Not helpful (🔴)
+
+![Pulse Check Detail](https://github.com/user-attachments/assets/9120b4b5-b7e7-4e50-b9a6-6f933d99f5b8)
+
 ## Quick Start
 
 1. **Clone and install:**
