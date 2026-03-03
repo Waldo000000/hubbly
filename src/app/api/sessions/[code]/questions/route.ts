@@ -228,7 +228,6 @@ export async function GET(
         return {
           id: q.id,
           sessionId: q.sessionId,
-          participantId: q.participantId || undefined,
           authorName: q.authorName || undefined,
           content: q.content,
           voteCount: q.voteCount,

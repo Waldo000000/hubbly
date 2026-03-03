@@ -12,5 +12,11 @@ export default withAuth(
 );
 
 export const config = {
-  matcher: ["/create/:path*", "/session/:path*/host/:path*", "/api/sessions"],
+  matcher: [
+    "/create/:path*",
+    "/session/:path*/host/:path*",
+    "/api/sessions",
+    "/api/sessions/:code/host/:path*",
+    "/api/questions/:id",
+  ],
 };

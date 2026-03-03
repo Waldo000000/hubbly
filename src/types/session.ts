@@ -43,7 +43,6 @@ export interface GetSessionResponse {
     host: {
       id: string;
       name: string | null;
-      email: string;
     };
     _count: {
       questions: number;

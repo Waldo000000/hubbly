@@ -37,7 +37,6 @@ export async function GET(
           select: {
             id: true,
             name: true,
-            email: true,
           },
         },
         _count: {
@@ -75,7 +74,6 @@ export async function GET(
         host: {
           id: qaSession.host.id,
           name: qaSession.host.name,
-          email: qaSession.host.email,
         },
         _count: {
           questions: qaSession._count.questions,

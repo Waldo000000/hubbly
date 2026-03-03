@@ -7,7 +7,7 @@
 
 ## Critical
 
-### 1. No HTTP Security Headers Configured
+### 1. ~~No HTTP Security Headers Configured~~ FIXED
 
 **File:** `next.config.js`
 
@@ -92,7 +92,7 @@ The server accepts an unvalidated client-supplied `id` and uses it as the databa
 
 ---
 
-### 3. `X-Forwarded-For` IP Spoofing Bypasses All Rate Limiting
+### 3. ~~`X-Forwarded-For` IP Spoofing Bypasses All Rate Limiting~~ FIXED
 
 **File:** `src/lib/request-utils.ts:16-19`
 
@@ -133,7 +133,7 @@ export function getClientIp(req: NextRequest): string {
 
 ---
 
-### 4. JWT Session Callback Reads Wrong Token Field
+### 4. ~~JWT Session Callback Reads Wrong Token Field~~ FIXED
 
 **File:** `src/lib/auth.ts:14-23`
 
@@ -149,7 +149,7 @@ session.user.id = (token.uid as string) ?? token.sub!;
 
 ## Important
 
-### 5. Host Email Exposed to Unauthenticated Callers
+### 5. ~~Host Email Exposed to Unauthenticated Callers~~ FIXED
 
 **File:** `src/app/api/sessions/[code]/route.ts:36-42`
 
@@ -159,7 +159,7 @@ The public `GET /api/sessions/[code]` endpoint returns `host.email` to anyone wi
 
 ---
 
-### 6. `participantId` Exposed in Public Questions API Response
+### 6. ~~`participantId` Exposed in Public Questions API Response~~ FIXED
 
 **File:** `src/app/api/sessions/[code]/questions/route.ts:229-231`
 
@@ -213,7 +213,7 @@ The unvote handler uses `decrement: 1` with no floor guard. Race conditions or d
 
 ---
 
-### 11. Middleware Doesn't Cover Host API Routes
+### 11. ~~Middleware Doesn't Cover Host API Routes~~ FIXED
 
 **File:** `src/middleware.ts:15`
 
@@ -255,7 +255,7 @@ The placeholder `"your-nextauth-secret-key"` is a guessable string visible in th
 
 ---
 
-### 14. npm Dependencies With Known Vulnerabilities
+### 14. ~~npm Dependencies With Known Vulnerabilities~~ FIXED
 
 **Audited:** 2026-03-03 — 6 vulnerabilities (3 high, 3 moderate)
 
