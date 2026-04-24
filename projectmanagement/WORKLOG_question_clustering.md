@@ -153,8 +153,10 @@ The first step is Linear issue [HUB-1](https://linear.app/waldo000000/issue/HUB-
 
 **Outcome:**
 - Captured decisions and open questions in "Next session — starting point" below.
-- Ran `npm run build:local` before push (per CLAUDE.md pre-push rule).
-- Committed markdown-only changes (CLAUDE.md + new worklog) and pushed to `main`.
+- Ran `npm run build:local` before push (per CLAUDE.md pre-push rule) — passed. Skipped `npm test` and `npm run lint` for this docs-only change; flag to revisit that shortcut if we ever ship code via this log.
+- Committed as `00aa78a` (`docs: add Question Clustering worklog and CLAUDE.md project section`).
+- First push was rejected — remote had a new commit (`1aa7b48` "Add participant view screenshots to README"). Rebased local commit on top and pushed cleanly.
+- Working tree clean; `origin/main` up to date.
 
 ---
 
