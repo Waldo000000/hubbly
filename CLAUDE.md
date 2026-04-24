@@ -20,6 +20,16 @@ Analyzes projectmanagement/\* files and CLAUDE.md for conflicting information th
 
 Usage: `/check-conflicts`
 
+## Active Projects
+
+### Question Clustering
+
+A multi-session effort to cluster submitted questions in a session into paraphrased summaries that link back to the verbatim questions. First step is Linear [HUB-1](https://linear.app/waldo000000/issue/HUB-1/integrate-with-triggerdev): a "hello world" integration with trigger.dev on the homepage, proving connectivity. Clustering itself comes in later issues.
+
+**Convention**: Every user prompt in a Question Clustering session must be appended to `projectmanagement/WORKLOG_question_clustering.md` immediately after it arrives. The log is intended to be shared with colleagues so they can see the real path taken — including detours — not just the final diff.
+
+When resuming this project (e.g. in a new session next week), read `projectmanagement/WORKLOG_question_clustering.md` first to recover context, then continue appending entries in the format described in that file's "Conventions" section.
+
 ## Project Structure
 
 - **Frontend**: Next.js 14+ with React 18+ and TypeScript
