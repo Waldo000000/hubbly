@@ -8,6 +8,7 @@ import type { GetSessionResponse } from "@/types/session";
 import type { HostQuestionResponse } from "@/types/question";
 import { fetcher } from "@/lib/swr-utils";
 import HostQuestionList from "@/components/host/HostQuestionList";
+import TriggerDevHello from "@/components/host/TriggerDevHello";
 
 export default function HostDashboardPage() {
   const { data: session, status } = useSession();
@@ -327,6 +328,8 @@ export default function HostDashboardPage() {
           Manage your Q&A session
         </p>
       </div>
+
+      <TriggerDevHello />
 
       {/* Session Info Card */}
       <div

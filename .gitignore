@@ -48,3 +48,5 @@ test.sqlite
 
 .vercel
 .env*.local
+
+.trigger
