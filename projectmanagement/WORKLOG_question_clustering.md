@@ -264,6 +264,12 @@ When resuming next week, start by reading this whole file, then pick up here.
 6. Investigate the prisma test-client setup (see "Test situation" above) before merging.
 7. Once verified, decide: open a PR for HUB-1 (suggested base: `main`, head: `waldo000000/hub-1-integrate-with-triggerdev`), or merge directly. Note the deviation from HUB-1's wording (host session view, not homepage) in the PR description.
 
+### Pushed
+- Branch: `waldo000000/hub-1-integrate-with-triggerdev` (created from `main`).
+- Commit: `acf9dd6` — *"feat: add trigger.dev hello-world integration on host dashboard (HUB-1)"*. 11 files changed, 1688 insertions, 44 deletions.
+- Remote: pushed to `origin` and tracking set. PR creation URL surfaced by GitHub: <https://github.com/Waldo000000/hubbly/pull/new/waldo000000/hub-1-integrate-with-triggerdev> (don't open the PR yet — wait for runtime verification tomorrow).
+- Side note: git surfaced an "identity configured from username/hostname" warning on commit (committer recorded as `Roy Wallace <roy.wallace@octopus.com>`). Not blocking; Roy can `git config --global user.email`/`user.name` if he prefers a different identity.
+
 ### Files that exist on the branch but not in the user's runtime yet
 - `trigger.config.ts` (project ref `proj_zlrqnykcswkqsquvbsso` hardcoded — fine for hello-world; revisit if/when we need separate dev/prod project refs).
 - `src/trigger/hello-world.ts` (the task — id `"hello-world"`, returns `{ message: "hello from trigger.dev at <iso>" }`).
